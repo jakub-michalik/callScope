@@ -1,0 +1,6 @@
+numpy>=1.26
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pytest>=8.0
+sounddevice>=0.4        # Phase 1: real mic/speaker audio (requires libportaudio2)
+# Phase 3 (VoIP): pjsua2/aiortc or Asterisk
