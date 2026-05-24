@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CallScope — FXS→VoIP Test Bench</title>
+<style>
+  :root{ /* serv24 palette — light B2B */
+    --bg:#f4f4f4; --bg2:#eceef2; --panel:#ffffff; --panel2:#fbfcfd; --line:#e5e7eb;
+    --line2:#d1d5db; --txt:#111827; --dim:#6b7280; --accent:#2563eb; --amber:#d97706;
+    --red:#e11d48; --cyan:#0891b2; --violet:#7c3aed; --green:#16a34a;
+    --glow:0 0 0 3px rgba(37,99,235,.18);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);
+    color:var(--txt);font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;
+    -webkit-font-smoothing:antialiased}
+  /* --- header --- */
+  header{display:flex;align-items:center;gap:14px;padding:11px 18px;
+    background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+  header h1{font-size:16px;margin:0;letter-spacing:.3px;color:var(--txt)}
+  header .tag{color:var(--dim);font-size:11px}
+  .spacer{flex:1}
+  .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  /* --- buttons --- */
+  button{background:#fff;color:var(--txt);border:1px solid var(--line2);
+    border-radius:9px;padding:7px 13px;cursor:pointer;font:inherit;transition:.15s}
+  button:hover{border-color:var(--accent);color:var(--accent);box-shadow:var(--glow);transform:translateY(-1px)}
+  button.primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;box-shadow:0 0 0 3px rgba(22,163,74,.2)}
+  button.danger{border-color:#fecdd3;color:var(--red);background:#fff}
+  button.danger:hover{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 0 3px rgba(225,29,72,.2)}
+  button.on{border-color:var(--red);color:#fff;background:var(--red)}
+  /* --- toolbars --- */
+  .toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+    padding:11px 18px;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);
+    position:sticky;top:49px;z-index:35;backdrop-filter:blur(8px);box-shadow:0 1px 6px rgba(17,24,39,.05)}
+  .setupbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:8px 18px;border-bottom:1px solid var(--line);background:var(--bg2);color:var(--dim);font-size:12px}
+  .dialin{width:96px;background:#fff;border:1px solid var(--line2);border-radius:9px;
+    color:var(--accent);font:inherit;font-weight:700;font-size:15px;letter-spacing:1px;text-align:center;padding:7px 8px}
+  .dialin:focus{outline:none;border-color:var(--accent);box-shadow:var(--glow)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{padding:5px 10px;font-size:11px;border-radius:20px;background:#fff;
+    border:1px solid var(--line2);color:var(--dim)}
+  .chip:hover{color:var(--accent);border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-1px)}
+  .vsep{width:1px;height:24px;background:var(--line2);margin:0 2px}
+  .setupbar label{display:flex;align-items:center;gap:7px}
+  .setupbar select,.setupbar input{background:#fff;border:1px solid var(--line2);
+    border-radius:7px;color:var(--txt);font:inherit;font-size:12px;padding:4px 7px}
+  /* --- layout --- */
+  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 18px;max-width:none;margin:0}
+  .full{grid-column:1/3}
+  /* a half-width grid cell holding two quarter-width cards side by side */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+  .card{background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(17,24,39,.04),0 8px 22px rgba(17,24,39,.06)}
+  .card:hover{border-color:var(--line2)}
+  .card h2{margin:0 0 11px;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);
+    display:flex;align-items:center;gap:8px}
+  .card h2::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  /* patchbay */
+  #bay{position:relative;height:180px}
+  svg{position:absolute;inset:0;width:100%;height:100%}
+  .node{position:absolute;transform:translate(-50%,-50%);width:110px;text-align:center}
+  .node .plane{font-size:9px;color:var(--violet);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  #node-SIP .box{border-color:var(--violet)}
+  .node .box{border:1px solid var(--line2);border-radius:11px;padding:11px 6px;
+    background:linear-gradient(180deg,#ffffff,#f7f9fc);box-shadow:0 4px 12px rgba(17,24,39,.07);transition:.2s}
+  .node .name{font-size:12px;color:var(--txt)}
+  .node .dot{width:8px;height:8px;border-radius:50%;background:#c3cad6;display:inline-block;margin-right:6px;vertical-align:middle}
+  .node.green .dot{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+  .node.amber .dot{background:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.18)}
+  .node.red .dot{background:var(--red);box-shadow:0 0 0 3px rgba(225,29,72,.18)}
+  .node.red .box{border-color:var(--red)}
+  .node .sub{color:var(--dim);font-size:10px;margin-top:4px;height:12px}
+  /* gauges */
+  .gauge{margin:8px 0}
+  .gauge .lab{display:flex;justify-content:space-between;color:var(--dim);font-size:11px}
+  .bar{height:9px;background:#eef1f5;border:1px solid #e2e6ec;border-radius:6px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));width:0;transition:.1s}
+  .led{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d1d5db;margin-right:6px}
+  .led.on{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+  /* keypad */
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:200px}
+  .pad button{padding:12px 0;font-size:15px}
+  .pad button.lit{border-color:var(--accent);color:var(--accent);background:#eff5ff;box-shadow:var(--glow)}
+  .digit{font-size:48px;font-weight:700;text-align:center;color:var(--green);min-height:58px}
+  .dialed{text-align:center;color:var(--accent);font-size:15px;min-height:20px;letter-spacing:3px;margin-bottom:8px}
+  canvas{width:100%;height:120px;display:block;background:#f8fafc;border:1px solid #e5e7eb;border-radius:9px}
+  /* per-block logs */
+  .logsfooter{padding:14px 18px 18px;margin-top:6px;border-top:1px solid var(--line);background:var(--bg2)}
+  .logsfooter>h2{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;
+    color:var(--dim);display:flex;align-items:center;gap:8px}
+  .logsfooter>h2::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  .blogs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+  .blog{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);
+    border-radius:9px;padding:7px}
+  .blog h3{margin:0 0 5px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:4px}
+  .blog .body{height:108px;overflow:auto;font-size:10px}
+  .blog .row{display:flex;flex-wrap:wrap;gap:4px;padding:2px 0;border-bottom:1px solid #f0f2f5;line-height:1.3}
+  .sev-info{color:var(--cyan)} .sev-warn{color:var(--amber)} .sev-error{color:var(--red)}
+  .pill{color:var(--dim)}
+  input[type=range]{accent-color:var(--accent)}
+  .prm{display:flex;flex-direction:column;gap:10px}
+  .prm label{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:12px}
+  .prm label b{color:var(--cyan);min-width:32px;text-align:right}
+  .prm input[type=range]{flex:1}
+  .live{margin-top:10px;color:var(--dim);font-size:12px}
+  .live b{color:var(--accent)}
+  .hint{margin-top:8px;color:#9ca3af;font-size:10px;line-height:1.5}
+  .info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+    flex:0 0 auto;border:1px solid var(--line2);border-radius:50%;color:var(--dim);font-size:9px;
+    font-style:italic;cursor:help;position:relative}
+  .info:hover{color:var(--accent);border-color:var(--accent)}
+  .info:hover::after{content:attr(data-tip);position:absolute;left:22px;top:-6px;width:260px;
+    background:#111827;border:1px solid #1f2937;border-radius:8px;padding:9px 11px;
+    color:#f3f4f6;font-size:11px;line-height:1.55;font-weight:400;font-style:normal;
+    z-index:30;box-shadow:0 10px 28px rgba(17,24,39,.28);white-space:normal}
+  .rootcause{margin-top:10px;padding:8px 12px;border-radius:8px;border:1px solid #fecdd3;
+    background:rgba(225,29,72,.07);font-size:12px;display:none}
+  .rootcause.show{display:block}
+  .rootcause b{color:var(--red)}
+  .rootcause .cons{color:var(--dim);font-size:11px;margin-top:3px}
+  .node .box{cursor:pointer}
+  .node.faulted .box{border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.18)}
+  .node.faulted .sub{color:var(--amber)}
+  .fmenu{position:absolute;z-index:50;background:#fff;border:1px solid var(--line2);
+    border-radius:8px;padding:6px;min-width:160px;box-shadow:0 10px 30px rgba(17,24,39,.18)}
+  .fmenu div{padding:6px 9px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--txt)}
+  .fmenu div:hover{background:#eff5ff;color:var(--accent)}
+  .fmenu .hdr,.fmenu .hdr:hover{color:var(--dim);font-size:10px;cursor:default;background:none;
+    text-transform:uppercase;letter-spacing:1px}
+  .cnt{color:var(--amber)}
+  .ts{font-family:ui-monospace,monospace;font-size:10px;white-space:nowrap;flex:0 0 auto;opacity:.85}
+  .ladhdr{display:flex;justify-content:space-between;color:var(--dim);font-size:10px;
+    padding:0 4px;text-transform:uppercase;letter-spacing:1px}
+  .ladder{height:210px;overflow:auto;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+  .ladder .m{margin:5px 0;font-size:12px}
+  .ladder .m .dt{font-size:10px;color:var(--dim);opacity:.85;margin-top:1px;font-family:ui-monospace,monospace}
+  .ladder .c1{color:var(--dim)} .ladder .c2{color:var(--accent)} .ladder .c45{color:var(--red)}
+  .rtpmeta{margin-top:8px;color:var(--dim);font-size:11px}
+  .rtpmeta b{color:var(--cyan)}
+</style>
+</head>
+<body>
+<header>
+  <h1>📞 CallScope</h1><span class="tag">FXS → VoIP signal-chain test bench</span>
+  <span class="spacer"></span>
+  <div class="ctrl">
+    <span class="tag" id="conn">● connecting…</span>
+    <span class="tag" id="audio">🔇 audio —</span>
+    <span class="tag" id="sipmode"></span>
+    <label class="tag">speed <input id="rt" type="range" min="0.1" max="1" step="0.1" value="1"></label>
+  </div>
+</header>
+
+<div class="toolbar">
+  <input id="dialnum" class="dialin" value="112" maxlength="7" title="number to dial — press Enter or Call"
+    onkeydown="if(event.key==='Enter')callNumber()">
+  <button class="primary" onclick="callNumber()">▶ Call</button>
+  <button class="danger" onclick="send({cmd:'hangup'})">■ Hangup</button>
+  <div class="chips">
+    <button class="chip" onclick="qd('112')">112 SOS</button>
+    <button class="chip" onclick="qd('600')">600 echo</button>
+    <button class="chip" onclick="qd('500')">500 CallScope</button>
+    <button class="chip" onclick="qd('700')">700 phone</button>
+    <button class="chip" onclick="qd('503')">503</button>
+    <button class="chip" onclick="qd('486')">486</button>
+  </div>
+  <span class="spacer"></span>
+  <button id="hookbtn" onclick="toggleHook()">📞 Pick up (off-hook)</button>
+  <button id="micbtn" onclick="toggleMic()">🎤 Source: generator</button>
+  <button id="cutbtn" onclick="toggleCut()">✂ Cut AnalogLine→DTMF</button>
+</div>
+
+<div class="setupbar">
+  <label>scenario
+    <select id="scenario" onchange="send({cmd:'set_scenario',args:{name:this.value}})"></select></label>
+  <span class="vsep"></span>
+  <label>SIP backend
+    <select id="sipbackend" onchange="applySipMode()"></select></label>
+  <label title="Asterisk host and port the native/baresip backends dial. The bundled container is 127.0.0.1:5062.">Asterisk
+    <input id="siphost" size="9" onchange="applySipMode()">:<input id="sipport" size="4" onchange="applySipMode()"></label>
+  <span class="vsep"></span>
+  <label title="Microphone gain for the live call (mic sent as RTP). Speech is naturally low-level — boost if the far end is too quiet.">mic gain
+    <input id="micgain" type="range" min="1" max="8" step="0.5" value="3"
+      oninput="send({cmd:'set_mic_gain',args:{value:+this.value}});document.getElementById('micgainv').textContent=this.value+'×'">
+    <span id="micgainv">3×</span></label>
+</div>
+
+<div class="wrap">
+  <div class="card full">
+    <h2>Patchbay — signal flow</h2>
+    <div id="bay">
+      <svg id="edges"></svg>
+      <!-- nodes injected -->
+    </div>
+    <div class="rootcause" id="rootcause"></div>
+    <div class="hint">Click a block to inject/clear a fault · use "Cut" below to break a link · the correlator localizes the root cause.</div>
+  </div>
+
+  <div class="duo">
+    <div class="card">
+      <h2>FXS / Analog line</h2>
+      <div class="gauge"><div class="lab"><span>Loop current</span><span id="loopv">0 mA</span></div>
+        <div class="bar"><i id="loopbar"></i></div></div>
+      <div class="gauge"><div class="lab"><span>Line voltage</span><span id="linev">48 V</span></div>
+        <div class="bar"><i id="linebar"></i></div></div>
+      <div style="margin-top:8px"><span class="led" id="hook"></span>off-hook
+        <span class="led" id="ring" style="margin-left:16px"></span>ring</div>
+    </div>
+    <div class="card">
+      <h2>DTMF</h2>
+      <div class="digit" id="digit">—</div>
+      <div class="dialed" id="dialed"></div>
+      <div class="pad" id="pad"></div>
+    </div>
+  </div>
+
+  <div class="duo">
+    <div class="card">
+      <h2>SIP — call flow (Box ↔ Provider)</h2>
+      <div class="ladhdr"><span>Box</span><span>Provider</span></div>
+      <div id="ladder" class="ladder"></div>
+      <div class="ctrl" style="margin-top:8px">
+        <button onclick="send({cmd:'inject_fault',args:{block:'SIP',type:'sip_503'}})">force 503</button>
+        <button onclick="send({cmd:'inject_fault',args:{block:'SIP',type:'sip_486'}})">force 486</button>
+        <button onclick="send({cmd:'clear_fault',args:{block:'SIP'}})">clear SIP</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>RTP — media stream</h2>
+      <div class="rtpgrid">
+        <div class="gauge"><div class="lab"><span>MOS</span><span id="rtp_mos">—</span></div>
+          <div class="bar"><i id="rtp_mosbar"></i></div></div>
+        <div class="gauge"><div class="lab"><span>Packet loss</span><span id="rtp_loss">—</span></div>
+          <div class="bar"><i id="rtp_lossbar" style="background:linear-gradient(90deg,#d97706,#e11d48)"></i></div></div>
+        <div class="rtpmeta">jitter <b id="rtp_jit">—</b> ms &nbsp;·&nbsp; <b id="rtp_pps">0</b> pps
+          &nbsp;·&nbsp; codec <b id="rtp_pt">PCMU</b> &nbsp;·&nbsp; seq <b id="rtp_seq">0</b></div>
+        <div class="rtpmeta" title="RTP packets received from / sent to the far end (downlink / uplink)">
+          RX ◀── <b id="rtp_rx">0</b> &nbsp;·&nbsp; TX ──▶ <b id="rtp_tx">0</b> &nbsp;pkts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card full">
+    <h2>DTMF — detection parameters (live)</h2>
+    <div class="prm" style="flex-direction:row;flex-wrap:wrap;gap:22px">
+      <label>SNR min <b id="v_snr">8</b> dB
+        <span class="info" data-tip="How far each tone must stand out above the background (the mean energy of the other frequency bins), in dB. Higher = ignores more noise but may miss weak tones; lower = catches quiet tones but risks false digits. Tip: read the live SNR of a real tone and set this a few dB below it.">i</span>
+        <input id="p_snr" type="range" min="2" max="20" step="0.5" value="8"></label>
+      <label>Twist max <b id="v_tw">12</b> dB
+        <span class="info" data-tip="Twist = level difference (dB) between the high-group and low-group tone of a DTMF pair. Microphones and small speakers weaken the low tones, so mic input shows high twist. Raise this to tolerate it; too high accepts malformed tones. Network spec ≈ 8 dB.">i</span>
+        <input id="p_tw" type="range" min="4" max="24" step="0.5" value="12"></label>
+      <label>Min tone duration <b id="v_mt">80</b> ms
+        <span class="info" data-tip="How long a tone must stay stable on the SAME digit before it is accepted (ms). Higher rejects brief noise glitches → far fewer false digits, but you must hold each key longer. ~100 ms matches a real dialer; 40 ms is the ITU receiver floor.">i</span>
+        <input id="p_mt" type="range" min="20" max="160" step="10" value="80"></label>
+    </div>
+    <div class="live">live reading: &nbsp; SNR L/H <b id="l_snr">— / —</b> dB
+      &nbsp;·&nbsp; twist <b id="l_tw">—</b> dB
+      <span class="info" data-tip="Live measurement of the current window. SNR L/H = how far the low- and high-group peaks rise above the background. twist = level imbalance between them. Use these numbers to choose the thresholds above.">i</span></div>
+    <div class="hint">Raise "SNR min" if it picks up noise; lower it if it misses quiet tones.
+      Raise "Twist max" when detecting from a microphone (acoustics attenuate low frequencies).</div>
+  </div>
+
+  <div class="card">
+    <h2>Oscilloscope — line output</h2>
+    <canvas id="scope" width="560" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Spectrum — DTMF bins (Goertzel)</h2>
+    <canvas id="spec" width="560" height="120"></canvas>
+  </div>
+
+</div>
+
+<div class="logsfooter">
+  <h2>Per-block logs</h2>
+  <div id="blogs" class="blogs"></div>
+</div>
+
+<script>
+// topology comes from the backend (hello.topology) — nothing hard-wired here
+let NODES=[], POS={}, MEDIA_EDGES=[], CTRL_EDGES=[];
+const KEYS=["1","2","3","4","5","6","7","8","9","*","0","#"];
+const LOWF=[697,770,852,941], HIGHF=[1209,1336,1477,1633], FREQS=[...LOWF,...HIGHF];
+
+let ws, cut=false;
+let edgeAct={};
+let spectrum={}; FREQS.forEach(f=>spectrum[f]=0);
+let scopeWave=new Array(80).fill(0);
+
+// build keypad
+const pad=document.getElementById('pad');
+KEYS.forEach(k=>{const b=document.createElement('button');b.textContent=k;b.dataset.k=k;
+  b.onclick=()=>send({cmd:'press_digit',args:{digit:k}});pad.appendChild(b);});
+
+// build the two-plane patchbay + per-block logs from the backend topology (once)
+const bay=document.getElementById('bay');
+const blogs=document.getElementById('blogs');
+let builtPatchbay=false;
+function buildPatchbay(topo){
+  if(builtPatchbay||!topo)return; builtPatchbay=true;
+  NODES=topo.nodes.map(n=>n.name);
+  POS={}; topo.nodes.forEach(n=>POS[n.name]={x:n.x,y:n.y,plane:n.plane});
+  MEDIA_EDGES=topo.media_edges.map(e=>[e.from,e.to,e.drive]);
+  CTRL_EDGES=topo.ctrl_edges.map(e=>[e.from,e.to,e.drive]);
+  edgeAct={}; [...MEDIA_EDGES,...CTRL_EDGES].forEach(([a,b,d])=>{if(d&&!edgeAct[d])edgeAct[d]={level:0,phase:0,connected:true};});
+  topo.nodes.forEach(n=>{const d=document.createElement('div');d.className='node green';d.id='node-'+n.name;
+    d.style.left=(n.x*100)+'%'; d.style.top=(n.y*100)+'%';
+    const tag=n.plane==='control'?'<div class="plane">control</div>':'';
+    d.innerHTML=`<div class="box"><span class="dot"></span><span class="name">${n.name}</span></div>${tag}<div class="sub" id="sub-${n.name}"></div>`;
+    bay.appendChild(d); d.querySelector('.box').onclick=(ev)=>openFaultMenu(n.name,ev);});
+  NODES.forEach(n=>{const c=document.createElement('div');c.className='blog';
+    c.innerHTML=`<h3>${n}</h3><div class="body" id="blog-${n}"></div>`;blogs.appendChild(c);});
+}
+let curWall=null;                       // wall-clock (epoch s) of the event being handled
+function fmtTime(w){
+  const d=w?new Date(w*1000):new Date(), p=(n,l=2)=>String(n).padStart(l,'0');
+  return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+'.'+p(d.getMilliseconds(),3);
+}
+function routeBlock(b){return b && b.indexOf('→')>=0 ? b.split('→')[0] : b;}
+function blockLog(block,code,msg,sev){
+  const body=document.getElementById('blog-'+routeBlock(block));
+  if(!body)return;
+  const r=document.createElement('div');r.className='row';
+  r.innerHTML=`<span class="pill ts">${fmtTime(curWall)}</span>`+
+    `<span class="sev-${sev||'info'}">${code}</span><span>${msg||''}</span>`;
+  body.prepend(r);                       // every event is its own timestamped line — no collapsing
+  while(body.children.length>200)body.removeChild(body.lastChild);
+}
+
+// --- fault injection menu ---  (labels come from the backend per block)
+let blockFaults={}, activeFaults={}, faultLabel={};
+function openFaultMenu(block,ev){
+  closeFaultMenu();
+  const list=blockFaults[block]||[];
+  const m=document.createElement('div');m.className='fmenu';m.id='fmenu';
+  let html=`<div class="hdr">${block} — inject fault</div>`;
+  if(!list.length)html+=`<div class="hdr">no faults for this block</div>`;
+  list.forEach(f=>html+=`<div data-f="${f.type}">${f.label}</div>`);
+  html+=`<div data-f="__clear" style="color:var(--accent)">✓ clear fault</div>`;
+  m.innerHTML=html;
+  m.style.left=Math.min(ev.pageX,innerWidth-180)+'px';m.style.top=ev.pageY+'px';
+  document.body.appendChild(m);
+  m.querySelectorAll('[data-f]').forEach(el=>el.onclick=()=>{
+    const f=el.dataset.f;
+    if(f==='__clear')send({cmd:'clear_fault',args:{block}});
+    else send({cmd:'inject_fault',args:{block,type:f}});
+    closeFaultMenu();});
+  ev.stopPropagation();
+}
+function closeFaultMenu(){const m=document.getElementById('fmenu');if(m)m.remove();}
+document.addEventListener('click',closeFaultMenu);
+
+function updateFaultBadges(){NODES.forEach(n=>{const el=document.getElementById('node-'+n);if(!el)return;
+  el.classList.toggle('faulted',!!activeFaults[n]);
+  const sub=document.getElementById('sub-'+n);
+  if(sub)sub.textContent=activeFaults[n]?('⚠ '+(faultLabel[activeFaults[n]]||activeFaults[n])):'';});}
+
+// --- SIP ladder + RTP ---
+function appendSip(m){
+  const lad=document.getElementById('ladder');
+  if(m.code==='INVITE'&&!/authenticated/.test(m.label))lad.innerHTML=''; // new call -> reset (not the auth retry)
+  const cls=/^2/.test(m.code)?'c2':(/^[45]/.test(m.code)?'c45':'c1');
+  const r=document.createElement('div');r.className='m';
+  r.style.textAlign=m.dir==='out'?'left':'right';
+  const a=m.dir==='out'?'──▶':'◀──';
+  const head=m.dir==='out'?'Box '+a+' ':' '+a+' Provider';
+  const det=m.detail?`<div class="dt">${String(m.detail).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`:'';
+  r.innerHTML=`<span class="${cls}">${head} <b>${m.label}</b></span>${det}`;
+  lad.appendChild(r);lad.scrollTop=lad.scrollHeight;
+}
+function updateRtp(s){
+  if(!s)return;
+  const mos=s.mos, loss=s.loss_pct||0;
+  document.getElementById('rtp_mos').textContent=(mos==null||!s.audio)?'—':mos.toFixed(2);
+  const mb=document.getElementById('rtp_mosbar');
+  mb.style.width=(mos&&s.audio)?(mos/4.4*100)+'%':'0%';
+  mb.style.background=mos>=4?'linear-gradient(90deg,#2563eb,#16a34a)':(mos>=3.5?'#d97706':'#e11d48');
+  document.getElementById('rtp_loss').textContent=s.audio?loss.toFixed(1)+'%':'—';
+  document.getElementById('rtp_lossbar').style.width=Math.min(loss*5,100)+'%';
+  document.getElementById('rtp_jit').textContent=s.audio?(s.jitter_ms||0).toFixed(0):'—';
+  document.getElementById('rtp_pps').textContent=s.pps||0;
+  document.getElementById('rtp_pt').textContent=s.pt===0?'PCMU':s.pt;
+  document.getElementById('rtp_seq').textContent=s.seq||0;
+  const rx=document.getElementById('rtp_rx'),tx=document.getElementById('rtp_tx');
+  if(rx)rx.textContent=s.received||0; if(tx)tx.textContent=s.sent||0;
+}
+
+function updateRootcause(d){const el=document.getElementById('rootcause');
+  if(!d||d.cleared){el.classList.remove('show');el.innerHTML='';return;}
+  el.classList.add('show');
+  el.innerHTML=`<b>ROOT CAUSE</b> — ${d.root_block}: ${d.summary}`+
+    (d.consequences&&d.consequences.length?`<div class="cons">downstream: ${d.consequences.join(', ')}</div>`:'');}
+
+function drawEdges(){
+  const svg=document.getElementById('edges');const W=bay.clientWidth,H=bay.clientHeight;
+  const X=n=>POS[n].x*W, Y=n=>POS[n].y*H;
+  let s='';
+  // media plane (solid, animated tokens)
+  MEDIA_EDGES.forEach(([a,b,ek])=>{
+    const e=edgeAct[ek]||{connected:true,level:0,phase:0};
+    const x1=X(a),y1=Y(a),x2=X(b),y2=Y(b);
+    const col=!e.connected?'#e11d48':(e.level>0.02?'#16a34a':'#cbd5e1');
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="3" ${!e.connected?'stroke-dasharray="5 5"':''}/>`;
+    if(e.connected&&e.level>0.02){
+      const t1=(e.phase)%1,t2=(e.phase+0.5)%1;
+      s+=`<circle cx="${x1+(x2-x1)*t1}" cy="${y1+(y2-y1)*t1}" r="4" fill="#16a34a"/>`;
+      s+=`<circle cx="${x1+(x2-x1)*t2}" cy="${y1+(y2-y1)*t2}" r="3" fill="#2563eb" opacity="0.6"/>`;
+    }
+  });
+  // control plane (dashed, violet when signaling/media active)
+  CTRL_EDGES.forEach(([a,b,ek])=>{
+    const e=edgeAct[ek]||{level:0};
+    const x1=X(a),y1=Y(a),x2=X(b),y2=Y(b);
+    const col=e.level>0.02?'#7c3aed':'#cbd5e1';
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  });
+  svg.innerHTML=s;
+}
+
+function setNode(name,state,health){const el=document.getElementById('node-'+name);
+  if(!el)return;el.className='node '+health+(activeFaults[name]?' faulted':'');}
+
+function logRow(t,code,block,sev,msg){
+  const log=document.getElementById('log');
+  if(!log)return;
+  const r=document.createElement('div');r.className='row';
+  r.innerHTML=`<span class="pill ts">${fmtTime(curWall)}</span>`+
+    `<span class="pill" title="engine clock">${(t||0).toFixed(2)}s</span>`+
+    `<span class="sev-${sev}">${code}</span><span class="pill">${block}</span><span>${msg||''}</span>`;
+  log.prepend(r);                        // one line per event — no collapsing
+  while(log.children.length>300)log.removeChild(log.lastChild);
+}
+
+let audioStatus={input:false,output:false};
+function onMsg(env){
+  const {ch,t,data,wall}=env;
+  curWall=wall||null;                    // real timestamp for any log line this event produces
+  if(ch==='reload'){location.reload();return;}
+  if(ch==='hello'){buildPatchbay(data.topology);initScenarios(data.scenarios,data.scenario);
+    initSipBackend(data.sip_modes,data.requested_sip_mode,data.sip_host,data.sip_port);
+    const sm=document.getElementById('sipmode');if(sm){const _m={native:'🟢 NATIVE (own SIP/RTP → Asterisk)',live:'🟢 LIVE (baresip → Asterisk)'};sm.textContent='SIP: '+(_m[data.sip_mode]||'sim')+(data.sip_error?(' ('+data.sip_error+')'):'');}
+    audioStatus=data.audio||{};updateAudioTag();initParams(data.dtmf_params||{});
+    blockFaults=data.block_faults||{};activeFaults=data.active_faults||{};
+    faultLabel={};Object.values(blockFaults).forEach(l=>l.forEach(f=>faultLabel[f.type]=f.label));
+    updateFaultBadges();}
+  else if(ch==='dtmfinfo'){updateLive(data);}
+  else if(ch==='faultstate'){if(data.fault)activeFaults[data.block]=data.fault;
+    else delete activeFaults[data.block];updateFaultBadges();}
+  else if(ch==='rootcause'){updateRootcause(data);}
+  else if(ch==='dialed'){const el=document.getElementById('dialed');
+    if(data.calling){el.textContent='📞 calling '+data.calling+'…';blockLog('Dialer','DIAL','calling '+data.calling);}
+    else el.textContent=data.number?('dialing: '+data.number):'';}
+  else if(ch==='source'){syncSource(data.mode);blockLog('Dialer','SOURCE',data.mode);}
+  else if(ch==='hook'){syncHook(data.offhook);
+    blockLog('Dialer','HOOK',data.offhook?'off-hook (line seized)':'on-hook');}
+  else if(ch==='sip'){appendSip(data);
+    blockLog('SIP',data.code,data.label,/^[45]/.test(data.code)?'error':'info');}
+  else if(ch==='rtp'){updateRtp(data);}
+  else if(ch==='state'){setNode(data.node,data.state,data.health);}
+  else if(ch==='flow'){const e=edgeAct[data.edge];if(e){e.connected=data.active||e.connected;
+    e.level=data.active?data.level||0.3:0; if(data.active===false)e.level=0;}}
+  else if(ch==='patchstate'){const e=edgeAct[data.edge];if(e)e.connected=data.connected;}
+  else if(ch==='spectrum'){spectrum=data.bins;}
+  else if(ch==='scope'){scopeWave=data.wave;}
+  else if(ch==='fxs'){updateFxs(data);}
+  else if(ch==='diag'){
+    if(data.active===false)return;   // a 'cleared' signal for the correlator — not a problem
+    if(data.code==='DTMF_DETECTED'){const d=data.measured.digit;showDigit(d);litKey(d);}
+    blockLog(data.block,data.code,data.message,data.severity);
+  }
+}
+
+function updateFxs(m){
+  const loop=m.loop_mA||0, v=m.line_voltage||48, off=m.offhook;
+  document.getElementById('loopv').textContent=loop.toFixed(0)+' mA';
+  document.getElementById('loopbar').style.width=Math.min(loop/30*100,100)+'%';
+  document.getElementById('linev').textContent=v.toFixed(0)+' V';
+  document.getElementById('linebar').style.width=(v/48*100)+'%';
+  document.getElementById('hook').classList.toggle('on',!!off);
+}
+
+function litKey(k){const b=[...pad.children].find(x=>x.dataset.k===k);if(!b)return;
+  b.classList.add('lit');setTimeout(()=>b.classList.remove('lit'),300);}
+
+let digitTimer=null;
+function showDigit(d){const el=document.getElementById('digit');el.textContent=d;
+  if(digitTimer)clearTimeout(digitTimer);
+  digitTimer=setTimeout(()=>{el.textContent='—';},1500);}
+
+// scope + spectrum render
+function render(){
+  // edges: advance phase
+  Object.keys(edgeAct).forEach(k=>{const a=edgeAct[k];if(a.connected&&a.level>0.02)a.phase=(a.phase+0.03)%1;a.level*=0.96;});
+  drawEdges();
+  // scope
+  const sc=document.getElementById('scope'),g=sc.getContext('2d');
+  g.clearRect(0,0,sc.width,sc.height);g.strokeStyle='#16a34a';g.lineWidth=1.5;g.beginPath();
+  const mid=sc.height/2;scopeWave.forEach((y,i)=>{const x=i/scopeWave.length*sc.width;
+    const yy=mid-y*mid*0.9;i?g.lineTo(x,yy):g.moveTo(x,yy);});g.stroke();
+  // spectrum
+  const sp=document.getElementById('spec'),h=sp.getContext('2d');h.clearRect(0,0,sp.width,sp.height);
+  const vals=FREQS.map(f=>spectrum[f]||0);const mx=Math.max(...vals,1e-6);
+  const bw=sp.width/FREQS.length;
+  FREQS.forEach((f,i)=>{const v=(spectrum[f]||0)/mx;const bh=v*(sp.height-22);
+    h.fillStyle=v>0.5?'#16a34a':(i<4?'#2563eb':'#7c3aed');
+    h.fillRect(i*bw+6,sp.height-bh-16,bw-12,bh);
+    h.fillStyle='#6b7280';h.font='9px monospace';h.fillText(f,i*bw+6,sp.height-4);});
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+function initScenarios(list,current){const sel=document.getElementById('scenario');if(!sel||!list)return;
+  sel.innerHTML=list.map(s=>`<option value="${s.id}"${s.id===current?' selected':''}>${s.title}</option>`).join('');}
+const SIP_BACKEND_LABELS={sim:'Simulated (no network)',native:'Native (own SIP/RTP)',live:'baresip (external client)'};
+function initSipBackend(list,current,host,port){const sel=document.getElementById('sipbackend');if(!sel||!list)return;
+  sel.innerHTML=list.map(m=>`<option value="${m}"${m===current?' selected':''}>${SIP_BACKEND_LABELS[m]||m}</option>`).join('');
+  const h=document.getElementById('siphost'),p=document.getElementById('sipport');
+  if(h&&host!=null)h.value=host; if(p&&port!=null)p.value=port;}
+function applySipMode(){const m=document.getElementById('sipbackend').value,
+    h=document.getElementById('siphost').value, p=document.getElementById('sipport').value;
+  send({cmd:'set_sip_mode',args:{mode:m,host:h,port:p}});}
+function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));}
+function callNumber(){const n=(document.getElementById('dialnum').value||'').trim();
+  if(n)send({cmd:'start_call',args:{number:n}});}
+function qd(n){document.getElementById('dialnum').value=n;callNumber();}
+function toggleCut(){cut=!cut;document.getElementById('cutbtn').classList.toggle('on',cut);
+  send({cmd:'cut_patch',args:{src:'AnalogLine',dst:'DTMF'}});}
+
+let micOn=false;
+function updateAudioTag(){const a=audioStatus;
+  document.getElementById('audio').textContent=
+    (a.output?'🔊':'🔇')+' out '+(a.input?'🎤 in':'no-mic');
+  document.getElementById('micbtn').disabled=!a.input;}
+function toggleMic(){if(!audioStatus.input)return;micOn=!micOn;
+  document.getElementById('micbtn').textContent='🎤 Source: '+(micOn?'MIC':'generator');
+  document.getElementById('micbtn').classList.toggle('on',micOn);
+  send({cmd:'set_source',args:{mode:micOn?'mic':'gen'}});}
+function syncSource(mode){micOn=(mode==='mic');
+  document.getElementById('micbtn').textContent='🎤 Source: '+(micOn?'MIC':'generator');
+  document.getElementById('micbtn').classList.toggle('on',micOn);}
+
+let hookOn=false;
+function toggleHook(){hookOn=!hookOn;send({cmd:'set_hook',args:{offhook:hookOn}});}
+function syncHook(off){hookOn=!!off;
+  const b=document.getElementById('hookbtn');
+  b.textContent=hookOn?'📞 Hang up (on-hook)':'📞 Pick up (off-hook)';
+  b.classList.toggle('on',hookOn);}
+document.getElementById('rt').oninput=e=>send({cmd:'set_rt_factor',args:{value:+e.target.value}});
+
+// --- DTMF detection parameters ---
+const PMAP={p_snr:["snr_min_db","v_snr"],p_tw:["twist_max_db","v_tw"],p_mt:["min_tone_ms","v_mt"]};
+function initParams(p){
+  if(p.snr_min_db!=null){document.getElementById('p_snr').value=p.snr_min_db;document.getElementById('v_snr').textContent=p.snr_min_db;}
+  if(p.twist_max_db!=null){document.getElementById('p_tw').value=p.twist_max_db;document.getElementById('v_tw').textContent=p.twist_max_db;}
+  if(p.min_tone_ms!=null){document.getElementById('p_mt').value=p.min_tone_ms;document.getElementById('v_mt').textContent=p.min_tone_ms;}
+}
+Object.entries(PMAP).forEach(([id,[name,lab]])=>{
+  document.getElementById(id).oninput=e=>{const v=+e.target.value;
+    document.getElementById(lab).textContent=v;
+    send({cmd:'set_dtmf_param',args:{name,value:v}});};
+});
+function fmt(x){return (x==null||isNaN(x))?'—':(+x).toFixed(1);}
+function updateLive(d){
+  document.getElementById('l_snr').textContent=fmt(d.snr_low)+' / '+fmt(d.snr_high);
+  document.getElementById('l_tw').textContent=fmt(d.twist_dB);
+}
+
+function connect(){
+  ws=new WebSocket(`ws://${location.host}/ws`);
+  ws.onopen=()=>document.getElementById('conn').textContent='● connected';
+  ws.onclose=()=>{document.getElementById('conn').textContent='● disconnected';setTimeout(connect,1000);};
+  ws.onmessage=ev=>onMsg(JSON.parse(ev.data));
+}
+connect();
+</script>
+</body>
+</html>
