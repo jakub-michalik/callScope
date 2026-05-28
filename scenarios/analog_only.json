@@ -1,0 +1,8 @@
+{
+  "title": "Analog / DTMF only",
+  "blocks": [
+    {"type": "Dialer"},
+    {"type": "AnalogLine"},
+    {"type": "DTMF"}
+  ]
+}

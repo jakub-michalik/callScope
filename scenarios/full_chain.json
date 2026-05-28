@@ -1,0 +1,11 @@
+{
+  "title": "Full FXS→VoIP chain",
+  "blocks": [
+    {"type": "Dialer"},
+    {"type": "AnalogLine"},
+    {"type": "DTMF"},
+    {"type": "SIP"},
+    {"type": "CodecRTP"},
+    {"type": "Gateway"}
+  ]
+}
