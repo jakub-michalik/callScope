@@ -1,0 +1,11 @@
+services:
+  asterisk:
+    image: andrius/asterisk:latest
+    container_name: callscope-asterisk
+    # host networking so baresip on the host reaches Asterisk at 127.0.0.1:5060
+    network_mode: host
+    volumes:
+      - ./conf/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./conf/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ./conf/manager.conf:/etc/asterisk/manager.conf:ro
+    restart: unless-stopped
