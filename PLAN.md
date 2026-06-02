@@ -165,8 +165,10 @@ Each block has its own tile with a preview (tap) and a health indicator; clickin
 - **Phase 0 — Graph skeleton (½–1 day):** `Block`/`Patch` contract, event bus, Diagnostics Logger (JSONL), WS, React shell with a patchbay on synthetic events. Proof that the bus and logging work.
 - **Phase 1 — Real audio + DSP:** Dialer/Line/DTMF blocks with `sounddevice`; DTMF synthesis → speaker, microphone → Goertzel; oscilloscope + spectrum + keypad + FXS panel. Live "key/tone → sound → plot → detection" loop.
 - **Phase 2 — Fault injection + disconnection + detection:** full fault catalog per block and per link, cut switches, complete set of detectors and cascading of diagnostics. This is the "meat" of the project.
-- **Phase 3 — VoIP (sim → real):** Codec/RTP block + SIP ladder (simulation), then optional swap-in of a real **Asterisk/pjsip** over the same event bus; optionally Twilio as the provider.
-- **Phase 4 — Polish:** session record/replay, diagnostic report export, "lab instrument" theme, docker-compose, kiosk mode on Pi4.
+- **Phase 3 — VoIP (sim):** Codec/RTP block + SIP ladder (simulation) over the same event bus.
+- **Phase 4 — Versatility + live SIP:** config-driven scenarios, blocks declaring their own conditions/faults, backend-sent topology; first real calls against Asterisk.
+- **Phase 5 — Native SIP/RTP stack:** CallScope becomes the SIP user agent itself (own UDP sockets, digest auth, RTP/G.711) — real calls with no external client.
+- **Phase 6 — Polish (future):** session record/replay, diagnostic report export, "lab instrument" theme, kiosk mode on Pi4.
 
 ---
 

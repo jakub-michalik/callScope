@@ -68,7 +68,10 @@ dashboard — straight off the wire — and **RTP ▸ Play Streams** plays back 
 > In `sim` mode there are **no packets** on the network: the ladder is generated in-process for
 > an infrastructure-free demo. The wire-level proof above needs `native` (or `live`).
 
-## Status — Phase 0 + 1 + 2 + 3 + D (done)
+## Status — Phases 0–5 (done)
+
+**Phase 0 — graph skeleton:** block/patch contract, event bus, WebSocket, the patchbay
+dashboard on synthetic events.
 
 Live flow through 3 blocks **Dialer → AnalogLine/FXS → DTMF** with real DSP:
 - DTMF synthesis + **Goertzel** decoder (8 frequencies) with validation (level, twist,
@@ -96,11 +99,11 @@ with real response codes, and an RTP media panel (loss %, jitter, MOS, codec, se
 New faults: SIP `503`/`486`, RTP `packet_loss`/`jitter`; the correlator gains a
 one-way-audio rule (signaling up but media not reaching the gateway).
 
-**Versatility + live SIP**: the chain is **config-driven** (`scenarios/*.json`, switchable
+**Phase 4 — versatility + live SIP**: the chain is **config-driven** (`scenarios/*.json`, switchable
 in the UI); blocks declare their own conditions/faults so adding one touches a single place;
 the patchbay topology is sent by the backend. Default stays fully simulated.
 
-**Phase D — native SIP/RTP stack (no external client)**: in
+**Phase 5 — native SIP/RTP stack (no external client)**: in
 `CALLSCOPE_SIP_MODE=native`, CallScope *is* the SIP user agent — a pure-Python UAC in
 [`backend/voip/`](backend/voip/) that opens its own UDP sockets, builds INVITE/ACK/BYE,
 answers **digest** challenges (RFC 2617), negotiates RTP via SDP, and streams **G.711** RTP.

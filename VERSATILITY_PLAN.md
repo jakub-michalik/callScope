@@ -197,7 +197,7 @@ def build_graph(scenario):
 
 ---
 
-## Phase D — Real calls through Asterisk (the big one)
+## Phase 5 — Real calls through Asterisk (the big one)
 
 **Outcome:** dialed digits place a **real** SIP call to Asterisk; the ladder shows **real
 codes**; real RTP flows; Wireshark sees the same packets. Fault injection overlays on top.
@@ -292,5 +292,5 @@ E (replay/export) and F (scripts) can land any time after A.
 4. **C, E, F** — as time allows.
 
 Each phase is independently shippable and test-first. Backend stays event-bus-driven, so the
-UI never needs to know whether SIP is simulated or real (Phase D), or whether events are live
+UI never needs to know whether SIP is simulated or real (Phase 5), or whether events are live
 or replayed (Phase E).

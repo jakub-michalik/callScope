@@ -1,4 +1,4 @@
-# CallScope ↔ Asterisk (live SIP, Phase D)
+# CallScope ↔ Asterisk (live SIP, Phase 5)
 
 By default CallScope runs **simulated** SIP. In **live mode** it places **real** calls against
 **Asterisk** over the wire (Wireshark / sngrep see real SIP/RTP). There are two live backends:

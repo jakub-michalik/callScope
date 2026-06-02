@@ -384,7 +384,7 @@ Goal: **a live flow through 3 blocks, without SIP/RTP/audio.**
 - Frontend: `WsProvider`, `Patchbay` with 3 blocks + flow token, `Scope`, `Spectrum`, `DtmfKeypad`, `EventLog`, `ControlBar` (Start, press digit, Cut patch).
 - Phase 0 demo: click a digit → token flows Dialer→Line→DTMF → spectrum lights up 2 bins → digit readout; click "Cut" on a patch → token stops, edge turns red, `SIGNAL_CUT` in the log.
 
-Phase 1 adds audio (sounddevice) and the FXS panel; Phase 2 — full faults + correlator; Phase 3 — CodecRTP+SIP (sim.→Asterisk); Phase 4 — replay/export/kiosk.
+Phase 1 adds audio (sounddevice) and the FXS panel; Phase 2 — full faults + correlator; Phase 3 — CodecRTP+SIP (sim); Phase 4 — versatility + live Asterisk; Phase 5 — native SIP/RTP stack; Phase 6 — replay/export/kiosk.
 
 ---
 
