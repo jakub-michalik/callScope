@@ -4,3 +4,4 @@ __pycache__/
 recordings/*.jsonl
 recordings/*.wav
 .pytest_cache/
+docs/_build/
