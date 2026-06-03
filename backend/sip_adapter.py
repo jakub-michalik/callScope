@@ -193,6 +193,9 @@ class SipAdapter:
         with open(os.path.join(self.conf_dir, "config"), "w") as f:
             f.write(f"module\t\tctrl_tcp.so\nctrl_tcp_listen\t{self.ctrl_host}:{self.ctrl_port}\n"
                     "module\t\tstdio.so\nmodule\t\taccount.so\n"
+                    # menu.so provides the `dial`/`hangup` commands the ctrl_tcp interface drives;
+                    # without it baresip answers "command not found (dial)".
+                    "module\t\tmenu.so\n"
                     # a codec module is mandatory: without it baresip loads 0 codecs and
                     # silently refuses to register the account.
                     "module\t\tg711.so\n"
