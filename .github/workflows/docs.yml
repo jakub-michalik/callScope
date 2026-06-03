@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # tags + history are needed for versioned docs
 
       - uses: actions/setup-python@v5
         with:
@@ -31,13 +33,42 @@ jobs:
           pip install -r requirements.txt
           pip install -r docs/requirements.txt
 
-      - name: Build HTML documentation
-        run: sphinx-build -b html docs docs/_build/html
+      - name: Build all documentation versions
+        run: |
+          set -eu
+          SITE="$GITHUB_WORKSPACE/_site"
+          rm -rf "$SITE"; mkdir -p "$SITE"
+
+          # "latest" = current main, served at the Pages root
+          sphinx-build -b html docs "$SITE"
+
+          # each release tag in its own subdirectory
+          BUILT=""
+          for t in $(git tag -l 'v*' | sort -V); do
+            git worktree add --detach "/tmp/wt-$t" "$t"
+            if ( cd "/tmp/wt-$t" && sphinx-build -b html docs "$SITE/$t" ); then
+              BUILT="$BUILT $t"
+            else
+              echo "::warning::documentation build failed for $t — skipping"
+            fi
+            git worktree remove --force "/tmp/wt-$t" || true
+          done
+
+          # versions.json (latest + successfully-built tags, newest first)
+          {
+            echo '['
+            echo '  {"name": "latest", "url": "/callScope/"}'
+            for t in $(echo $BUILT | tr ' ' '\n' | sort -rV); do
+              echo "  ,{\"name\": \"$t\", \"url\": \"/callScope/$t/\"}"
+            done
+            echo ']'
+          } > "$SITE/versions.json"
+          cat "$SITE/versions.json"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_build/html
+          path: _site
 
   deploy:
     needs: build

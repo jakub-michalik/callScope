@@ -37,8 +37,21 @@ templates_path = ["_templates"]
 exclude_patterns = ["_build", "screenshots", "Thumbs.db", ".DS_Store"]
 
 html_theme = "furo"
-html_title = "CallScope 0.2"
-html_static_path = []
+html_title = "CallScope"
+html_static_path = ["_static"]
+html_js_files = ["versions.js"]
+
+# add a version/release switcher to the furo sidebar (populated from versions.json)
+html_sidebars = {
+    "**": [
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/scroll-start.html",
+        "version-switcher.html",
+        "sidebar/navigation.html",
+        "sidebar/scroll-end.html",
+    ]
+}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
