@@ -16,6 +16,7 @@ services:
   baresip:
     build: ./baresip
     image: callscope-baresip:latest
+    pull_policy: build          # local image — always build, never try to pull from a registry
     container_name: callscope-baresip
     network_mode: host          # reach Asterisk on 5062, expose ctrl_tcp on 4444
     depends_on:
