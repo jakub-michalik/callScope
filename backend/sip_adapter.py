@@ -153,13 +153,24 @@ class SipAdapter:
                      "t": t, "protocol_code": f"{self.fail_code} {SIP_REASON.get(self.fail_code, '')}"}]
         return []
 
+    def _ctrl_is_up(self) -> bool:
+        """Is a baresip ctrl_tcp already listening? (i.e. the Docker baresip container)."""
+        try:
+            with socket.create_connection((self.ctrl_host, self.ctrl_port), timeout=0.5):
+                return True
+        except OSError:
+            return False
+
     # --- lifecycle ---
     def start_stack(self) -> "SipAdapter":
         try:
-            self._write_config()
-            self._proc = subprocess.Popen(
-                [self.baresip_bin, "-f", self.conf_dir],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Prefer an already-running baresip (the Docker `baresip` service): just
+            # connect to its ctrl_tcp. Otherwise spawn a host-installed baresip.
+            if not self._ctrl_is_up():
+                self._write_config()
+                self._proc = subprocess.Popen(
+                    [self.baresip_bin, "-f", self.conf_dir],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self._connect_ctrl()
             threading.Thread(target=self._read_loop, daemon=True).start()
             self.available = True

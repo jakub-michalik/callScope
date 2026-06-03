@@ -225,6 +225,19 @@ CALLSCOPE_SIP_MODE=native python backend/run.py     # → http://localhost:8000
 The header should read **`SIP: 🟢 NATIVE (own SIP/RTP → Asterisk)`**. You can also switch the
 backend and set the Asterisk `host:port` live in the top bar — point it at `127.0.0.1:5062`.
 
+**(optional) baresip backend — a real SIP client in a second container.** The `live` backend
+drives an off-the-shelf **baresip** client instead of the native stack — a nice interop
+cross-check. Run it from Docker too (no host install), then pick **baresip** in the SIP-backend
+dropdown:
+```bash
+cd asterisk
+docker compose --profile live up -d              # starts BOTH containers: asterisk + baresip
+docker logs callscope-baresip | grep "200 OK"    # baresip registered to Asterisk
+cd ..
+```
+CallScope's live adapter **auto-connects** to the container's `ctrl_tcp` on `127.0.0.1:4444`
+(no `subprocess`, no host baresip needed). Native is still the recommended path.
+
 **c) Make real calls** — pick up the line, then dial:
 
 | Dial | Asterisk does |

@@ -30,6 +30,22 @@ Core ideas
   pure-Python SIP user agent: real INVITE/ACK/BYE, digest auth (RFC 2617), SDP negotiation
   and G.711 RTP streaming against Asterisk, with no external client.
 
+SIP backends
+------------
+
+The SIP control plane is pluggable; all three backends expose the same interface, so the
+dashboard, fault injection and correlator work identically on any of them:
+
+* **sim** — the ladder is produced in-process (no network); the infrastructure-free default.
+* **native** (:mod:`voip.sip_native`) — CallScope *is* the SIP user agent; real SIP/RTP on the
+  wire against Asterisk. **Recommended.**
+* **baresip** (:mod:`sip_adapter`) — drives a real off-the-shelf **baresip** client over its
+  ``ctrl_tcp`` interface, as an interop cross-check. It runs in Docker (a ``baresip`` service in
+  ``asterisk/docker-compose.yml``, behind the ``live`` profile); the adapter auto-connects to the
+  container's ``ctrl_tcp`` on ``127.0.0.1:4444``, or falls back to spawning a host ``baresip``.
+
+Both live backends talk to a bundled **Asterisk** container — see ``ASTERISK.md`` in the repo.
+
 Phases
 ------
 

@@ -42,7 +42,10 @@ def test_non_event_ignored():
 
 
 def test_adapter_offline_is_unavailable_and_falls_back_cleanly():
-    a = SipAdapter(baresip_bin="definitely-not-a-real-binary-xyz").start_stack()
+    # ctrl_port 14444: nothing listens there, so connect-first fails and the fake
+    # binary can't be spawned → the adapter must report itself unavailable.
+    a = SipAdapter(baresip_bin="definitely-not-a-real-binary-xyz",
+                   ctrl_port=14444).start_stack()
     assert a.available is False
     assert a.error
     # still SipSession-compatible (no crash) — start/tick/conditions work

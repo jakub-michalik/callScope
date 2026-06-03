@@ -2,10 +2,23 @@ services:
   asterisk:
     image: andrius/asterisk:latest
     container_name: callscope-asterisk
-    # host networking so baresip on the host reaches Asterisk at 127.0.0.1:5060
+    # host networking so CallScope reaches Asterisk at 127.0.0.1:5062
     network_mode: host
     volumes:
       - ./conf/pjsip.conf:/etc/asterisk/pjsip.conf:ro
       - ./conf/extensions.conf:/etc/asterisk/extensions.conf:ro
       - ./conf/manager.conf:/etc/asterisk/manager.conf:ro
     restart: unless-stopped
+
+  # optional: a real baresip client in Docker, for the `live` SIP backend.
+  # It registers to Asterisk and exposes baresip's ctrl_tcp on 127.0.0.1:4444,
+  # which CallScope's live adapter connects to (instead of spawning a host baresip).
+  baresip:
+    build: ./baresip
+    image: callscope-baresip:latest
+    container_name: callscope-baresip
+    network_mode: host          # reach Asterisk on 5062, expose ctrl_tcp on 4444
+    depends_on:
+      - asterisk
+    restart: unless-stopped
+    profiles: ["live"]          # only started with: docker compose --profile live up -d

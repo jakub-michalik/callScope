@@ -1,0 +1,10 @@
+module_path  /usr/lib/baresip/modules
+module  account.so
+module  g711.so
+module  ctrl_tcp.so
+ctrl_tcp_listen  0.0.0.0:4444
+module  ausine.so
+module  aufile.so
+sip_listen  0.0.0.0:5078
+audio_source  ausine,440
+audio_player  aufile,/dev/null

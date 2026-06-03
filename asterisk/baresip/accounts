@@ -1,0 +1,1 @@
+<sip:callscope@127.0.0.1:5062;transport=udp>;auth_user=callscope;auth_pass=callscope;regint=60;audio_codecs=pcmu,pcma

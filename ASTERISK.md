@@ -6,7 +6,7 @@ By default CallScope runs **simulated** SIP. In **live mode** it places **real**
 | Mode | `CALLSCOPE_SIP_MODE` | What it is |
 |---|---|---|
 | **Native** (recommended) | `native` | CallScope is the SIP user agent itself — pure-Python UAC + RTP, no external client. |
-| Legacy | `live` | CallScope drives an external `baresip` over `ctrl_tcp`. |
+| baresip | `live` | CallScope drives a real `baresip` client (Dockerized) over `ctrl_tcp` — interop cross-check. |
 
 ```
 [CallScope analog side: Dialer→FXS→DTMF]  →  native SIP UAC + RTP (backend/voip)  ⇄ SIP/RTP ⇄  Asterisk
@@ -19,7 +19,7 @@ challenges (RFC 2617), and streams G.711 RTP — no `baresip`/`pjsua`/`linphone`
 
 ## Prerequisites
 - **Docker** (for Asterisk). The native mode needs **nothing else** — it is pure Python.
-- (Legacy mode only: `baresip` on the host.)
+- (baresip backend: nothing extra — it runs in Docker too; a host apt `baresip` works as a fallback.)
 
 ## ⚠️ Port 5060 — the gotcha that wastes hours
 Asterisk's default SIP port is **5060**. If you already have a **host** Asterisk/SIP service
@@ -115,10 +115,34 @@ and parses the SIP itself), so it matches sngrep/Wireshark message-for-message.
 > config. Moving the container to 5062 (see the port gotcha above) fixed it — the digest stack
 > was correct all along.
 
-## Legacy mode (baresip)
-`CALLSCOPE_SIP_MODE=live` drives an external `baresip` via `ctrl_tcp` (127.0.0.1:4444); the
-`SipAdapter` writes a baresip config to `~/.callscope-baresip/` and approximates the ladder from
-baresip call states. Kept as a fallback; the native stack supersedes it.
+## baresip backend (`live`) — a real SIP client, in Docker
+
+`CALLSCOPE_SIP_MODE=live` (or picking **baresip** in the UI) drives an off-the-shelf **baresip**
+client over its `ctrl_tcp` interface (`127.0.0.1:4444`) — an interop cross-check that the same
+Asterisk endpoint also works with a third-party client. The native stack supersedes it, but it's
+fully Dockerized so you need nothing on the host.
+
+### Run it from Docker (recommended)
+The bundled `docker-compose.yml` has a `baresip` service (build: [`baresip/`](asterisk/baresip/))
+behind the `live` profile. It registers to Asterisk and exposes `ctrl_tcp` on `0.0.0.0:4444`:
+```bash
+cd asterisk
+docker compose --profile live up -d              # starts asterisk + baresip
+docker logs callscope-baresip | grep "200 OK"    # baresip registered: 200 OK (Asterisk PBX …)
+nc -z 127.0.0.1 4444 && echo "ctrl_tcp is up"
+```
+The baresip container ([`asterisk/baresip/`](asterisk/baresip/)) is `debian:bookworm-slim` + apt
+`baresip`, configured headless with `ctrl_tcp`, `g711` and an account pointing at Asterisk on 5062.
+
+### How CallScope uses it
+The `SipAdapter` **auto-detects** a running ctrl_tcp:
+- if `127.0.0.1:4444` is already listening (the Docker `baresip` service) → it just **connects** to it;
+- otherwise it falls back to **spawning a host-installed `baresip`** (apt `baresip`, writing a
+  config to `~/.callscope-baresip/`).
+
+So `live` mode works either fully from Docker, or against a host baresip — no code change needed.
+The adapter maps baresip's call-state events to the SIP ladder (baresip hides the per-message SIP,
+so the 401/digest round trip happens internally — unlike the native backend, which shows every message).
 
 ## What's simulated vs real here
 - **Real (native):** SIP signaling (INVITE/ACK/BYE + digest), response codes (200/486/503),
