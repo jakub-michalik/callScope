@@ -24,7 +24,7 @@ SIP + RTP stack (no external softphone).
 SIP signaling + digest auth, RTP/G.711 media, a root-cause correlator over the signal
 chain, and real interop with Asterisk — end to end, with live verification.
 
-Docs: [**online docs**](https://jakub-michalik.github.io/callScope/) · [**Investigating problems**](https://jakub-michalik.github.io/callScope/troubleshooting.html) · [`PLAN.md`](PLAN.md) · [`DESIGN.md`](DESIGN.md) · [`ASTERISK.md`](ASTERISK.md) · [`CHANGELOG.md`](CHANGELOG.md).
+Docs: [**online docs**](https://jakub-michalik.github.io/callScope/) · [**Quick start**](https://jakub-michalik.github.io/callScope/quickstart.html) · [**Investigating problems**](https://jakub-michalik.github.io/callScope/troubleshooting.html) · [`PLAN.md`](PLAN.md) · [`DESIGN.md`](DESIGN.md) · [`ASTERISK.md`](ASTERISK.md) · [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Screenshots
 
@@ -192,6 +192,8 @@ Pure Python deps (`numpy`, `fastapi`, `uvicorn`, `sounddevice`) — **no externa
 (baresip/pjsua/linphone) is needed; the native SIP stack is built in.
 
 ## Quick start
+
+> Also available as a hosted guide: **[Quick start](https://jakub-michalik.github.io/callScope/quickstart.html)**.
 
 ### 1. Install
 ```bash
