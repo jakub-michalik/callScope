@@ -143,6 +143,18 @@
   .ladder .c1{color:var(--dim)} .ladder .c2{color:var(--accent)} .ladder .c45{color:var(--red)}
   .rtpmeta{margin-top:8px;color:var(--dim);font-size:11px}
   .rtpmeta b{color:var(--cyan)}
+  /* floating container-logs drawer (fixed, does not affect the dashboard layout) */
+  .logsdrawer{position:fixed;left:0;right:0;bottom:0;z-index:60;height:42vh;display:none;
+    flex-direction:column;background:var(--panel);border-top:2px solid var(--accent);
+    box-shadow:0 -8px 30px rgba(17,24,39,.22)}
+  .logsdrawer.show{display:flex}
+  .logshdr{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12px}
+  .logsbody{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);overflow:hidden}
+  .logcol{display:flex;flex-direction:column;background:var(--panel2);overflow:hidden}
+  .logcol h4{margin:0;padding:6px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--dim);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .logcol pre{margin:0;flex:1;overflow:auto;padding:8px 12px;font:11px/1.4 ui-monospace,monospace;
+    color:var(--txt);white-space:pre-wrap;word-break:break-word}
 </style>
 </head>
 <body>
@@ -174,6 +186,21 @@
   <button id="hookbtn" onclick="toggleHook()">📞 Pick up (off-hook)</button>
   <button id="micbtn" onclick="toggleMic()">🎤 Source: generator</button>
   <button id="cutbtn" onclick="toggleCut()">✂ Cut AnalogLine→DTMF</button>
+  <button id="logsbtn" onclick="toggleLogs()">📋 Container logs</button>
+</div>
+
+<!-- floating logs drawer: position:fixed, so it never changes the dashboard layout -->
+<div id="logsdrawer" class="logsdrawer">
+  <div class="logshdr">
+    <b>Container logs</b>
+    <span class="tag" id="logsstatus"></span>
+    <span class="spacer"></span>
+    <button onclick="toggleLogs()">✕ close</button>
+  </div>
+  <div class="logsbody">
+    <div class="logcol"><h4>Asterisk <span class="pill">callscope-asterisk</span></h4><pre id="log-asterisk"></pre></div>
+    <div class="logcol"><h4>baresip <span class="pill">callscope-baresip</span></h4><pre id="log-baresip"></pre></div>
+  </div>
 </div>
 
 <div class="setupbar">
@@ -466,6 +493,12 @@ function onMsg(env){
   else if(ch==='sip'){appendSip(data);
     blockLog('SIP',data.code,data.label,/^[45]/.test(data.code)?'error':'info');}
   else if(ch==='rtp'){updateRtp(data);}
+  else if(ch==='logs'){
+    const a=document.getElementById('log-asterisk'),b=document.getElementById('log-baresip');
+    if(a){a.textContent=data.asterisk||'';a.scrollTop=a.scrollHeight;}
+    if(b){b.textContent=data.baresip||'';b.scrollTop=b.scrollHeight;}
+    const s=document.getElementById('logsstatus');if(s)s.textContent='updated '+fmtTime(curWall);
+  }
   else if(ch==='state'){setNode(data.node,data.state,data.health);}
   else if(ch==='flow'){const e=edgeAct[data.edge];if(e){e.connected=data.active||e.connected;
     e.level=data.active?data.level||0.3:0; if(data.active===false)e.level=0;}}
@@ -533,6 +566,14 @@ function send(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));}
 function callNumber(){const n=(document.getElementById('dialnum').value||'').trim();
   if(n)send({cmd:'start_call',args:{number:n}});}
 function qd(n){document.getElementById('dialnum').value=n;callNumber();}
+let logsTimer=null;
+function fetchLogs(){const s=document.getElementById('logsstatus');if(s)s.textContent='⟳ refreshing…';send({cmd:'get_logs'});}
+function toggleLogs(){
+  const d=document.getElementById('logsdrawer');const open=d.classList.toggle('show');
+  document.getElementById('logsbtn').classList.toggle('on',open);
+  if(open){fetchLogs();logsTimer=setInterval(fetchLogs,2000);}
+  else{clearInterval(logsTimer);logsTimer=null;}
+}
 function toggleCut(){cut=!cut;document.getElementById('cutbtn').classList.toggle('on',cut);
   send({cmd:'cut_patch',args:{src:'AnalogLine',dst:'DTMF'}});}
 

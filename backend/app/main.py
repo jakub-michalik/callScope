@@ -6,6 +6,7 @@ Dashboard: http://localhost:8000
 from __future__ import annotations
 import asyncio
 import os
+import subprocess
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -229,6 +230,21 @@ class Runtime:
                           "severity": "error", "t": self.graph.t})
         return conds
 
+    @staticmethod
+    def _docker_logs(tail: int = 120) -> dict:
+        """Tail the bundled Asterisk/baresip container logs (for the dashboard overlay)."""
+        out = {}
+        for key, container in (("asterisk", "callscope-asterisk"),
+                               ("baresip", "callscope-baresip")):
+            try:
+                r = subprocess.run(["docker", "logs", "--tail", str(tail), container],
+                                   capture_output=True, text=True, timeout=3)
+                text = (r.stdout + r.stderr).strip()
+                out[key] = text or "(no output)"
+            except Exception as e:                       # noqa: BLE001
+                out[key] = f"(unavailable: {type(e).__name__})"
+        return out
+
     def _broadcast(self, env: dict):
         for q in list(self.clients):
             try:
@@ -363,6 +379,8 @@ class Runtime:
                     self.sip.tx_gain = max(0.0, float(a.get("value", 1.0)))
                 except (TypeError, ValueError):
                     pass
+        elif cmd == "get_logs":
+            self.bus.emit("logs", self.graph.t, self._docker_logs())
         elif cmd == "set_sip_mode":
             mode = a.get("mode", self.requested_sip_mode)
             host, port = a.get("host"), a.get("port")
