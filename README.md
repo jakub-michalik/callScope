@@ -4,6 +4,7 @@
 [![Docs](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml/badge.svg)](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml)
 [![Release](https://img.shields.io/github/v/release/jakub-michalik/callScope?display_name=tag&sort=semver)](https://github.com/jakub-michalik/callScope/releases)
 [![Documentation](https://img.shields.io/badge/docs-online-2563eb)](https://jakub-michalik.github.io/callScope/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
 ### 📖 [Read the documentation → jakub-michalik.github.io/callScope](https://jakub-michalik.github.io/callScope/)
@@ -295,3 +296,7 @@ asterisk/  docker-compose + conf (pjsip/extensions/manager) for live SIP
 tests/     dtmf, analog_line, dialer, chain, correlator, scenario, contract,
            codec_rtp, sip, sip_adapter, voip, test_sip_native, regression
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Jakub Michalik.
