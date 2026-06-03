@@ -104,7 +104,7 @@ Diagnostic:
 - collects diagnostics from all blocks/links, correlates per session (call)
 - writes a **structured JSONL log** (each line = one event) → replayable and exportable like a report/pcap
 - feeds: (a) **per-block health indicators** on the dashboard (green/yellow/red), (b) a **scrolling event log** with filtering by block/severity/code, (c) **highlighting of the fault location** in the graph
-- **Replay**: a recorded session (JSONL + audio frames) can be replayed and analyzed after the fact — this realizes "Log- und Protokollanalysen" from the offer
+- **Replay**: a recorded session (JSONL + audio frames) can be replayed and analyzed after the fact — log and protocol analysis of past calls
 
 **Sample detection catalog (threshold → severity):**
 
@@ -200,7 +200,7 @@ callScope/
 
 ---
 
-## 9. Mapping to the offer's requirements
+## 9. Mapping to telecom requirements
 
 | Telecom capability | Realization in CallScope |
 |---|---|

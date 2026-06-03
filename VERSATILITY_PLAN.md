@@ -260,7 +260,7 @@ A `mode` flag: `sim` (current `SipSession`) vs `live` (`SipAdapter`). Same UI, s
 - **Replay:** read JSONL, re-emit on the bus by timestamp → UI replays a past call; the UI
   cannot tell live from replay (same bus).
 - **Export report:** filter `severity≥warn` + `rootcause` + SIP/Q.850 codes → a Markdown/PDF
-  diagnostic report. Directly realises the offer's *"Log- und Protokollanalyse"*.
+  diagnostic report — log and protocol analysis of a recorded session.
 
 **Effort:** ~1 day. **Risk:** low.
 
@@ -270,7 +270,7 @@ A `mode` flag: `sim` (current `SipSession`) vs `live` (`SipAdapter`). Same UI, s
 
 - A scenario script (JSON): timed actions `[{t:0,cmd:start_call,number:112},{t:3,cmd:inject_fault,block:CodecRTP,type:packet_loss},…]`.
 - A headless runner drives the Runtime, asserts the expected `rootcause` → a **regression test**.
-- Recorded JSONL sessions become **fixtures**. Ties to the offer's *"Testautomatisierung / CI"*.
+- Recorded JSONL sessions become **fixtures** — test automation and CI.
 
 **Effort:** ~half a day. **Risk:** low.
 
