@@ -16,7 +16,11 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
+    "sphinxcontrib.mermaid",
 ]
+
+# render Mermaid as inline SVG (no client-side JS needed to view the diagrams)
+mermaid_output_format = "raw"
 
 # sounddevice needs system PortAudio at import time — mock it so docs build anywhere
 autodoc_mock_imports = ["sounddevice"]

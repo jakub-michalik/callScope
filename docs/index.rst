@@ -21,6 +21,8 @@ root-cause correlator.
    :caption: Contents
 
    overview
+   architecture
+   screenshots
    api
 
 Indices
