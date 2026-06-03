@@ -1,5 +1,10 @@
 # CallScope
 
+[![CI](https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml/badge.svg)](https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml)
+[![Docs](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml/badge.svg)](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml)
+[![Release](https://img.shields.io/github/v/release/jakub-michalik/callScope?display_name=tag&sort=semver)](https://github.com/jakub-michalik/callScope/releases)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+
 **An oscilloscope for phone calls.** A live, in-browser test bench that walks a call
 through the whole **FXS → VoIP** chain — analog dialer → FXS line → DTMF decode → SIP →
 RTP/codec → gateway — visualizes every stage, lets you inject faults and cut links, and
