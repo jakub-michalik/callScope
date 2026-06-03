@@ -17,12 +17,17 @@ primitives (Goertzel DTMF, SIP digest, RTP/G.711), the signal-chain blocks, and 
 root-cause correlator.
 
 .. toctree::
+   :caption: Architecture
    :maxdepth: 2
-   :caption: Contents
 
    overview
    architecture
    screenshots
+
+.. toctree::
+   :caption: Reference
+   :maxdepth: 2
+
    api
 
 Indices

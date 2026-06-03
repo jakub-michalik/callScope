@@ -1,5 +1,5 @@
-Architecture diagrams
-======================
+Diagrams
+========
 
 Block graph (two planes)
 ------------------------

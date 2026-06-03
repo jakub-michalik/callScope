@@ -1,5 +1,5 @@
-Architecture overview
-=====================
+Overview
+========
 
 CallScope models a phone call as a **graph of blocks** connected by **patches**. Each
 block owns a small, self-contained piece of the signal chain and reports diagnostics to a
