@@ -233,6 +233,7 @@ dropdown:
 cd asterisk
 docker compose --profile live up -d              # starts BOTH containers: asterisk + baresip
 docker logs callscope-baresip | grep "200 OK"    # baresip registered to Asterisk
+nc -z 127.0.0.1 4444 && echo "ctrl_tcp up"       # baresip's control port is listening
 cd ..
 ```
 CallScope's live adapter **auto-connects** to the container's `ctrl_tcp` on `127.0.0.1:4444`
@@ -257,6 +258,14 @@ CallScope's live adapter **auto-connects** to the container's `ctrl_tcp` on `127
 ```bash
 sudo tcpdump -i lo -n -A 'udp port 5062'        # raw SIP in the console while you call
 python tools/sip_trace.py 600 127.0.0.1 5062    # app-level SIP/RTP trace of the same call
+```
+
+### 5. Stop
+```bash
+# Ctrl-C the app, then stop the containers:
+cd asterisk
+docker compose --profile live down              # stops asterisk + baresip
+cd ..
 ```
 
 ## Tests
