@@ -303,8 +303,11 @@ KEYS.forEach(k=>{const b=document.createElement('button');b.textContent=k;b.data
 const bay=document.getElementById('bay');
 const blogs=document.getElementById('blogs');
 let builtPatchbay=false;
-function buildPatchbay(topo){
+function buildPatchbay(topo,sipMode){
   if(builtPatchbay||!topo)return; builtPatchbay=true;
+  const live=(sipMode==='native'||sipMode==='live');
+  // in a live call the gateway IS Asterisk — relabel it (internal name stays "Gateway")
+  const labelOf=n=>(n.name==='Gateway'&&live)?'Asterisk':n.name;
   NODES=topo.nodes.map(n=>n.name);
   POS={}; topo.nodes.forEach(n=>POS[n.name]={x:n.x,y:n.y,plane:n.plane});
   MEDIA_EDGES=topo.media_edges.map(e=>[e.from,e.to,e.drive]);
@@ -313,7 +316,7 @@ function buildPatchbay(topo){
   topo.nodes.forEach(n=>{const d=document.createElement('div');d.className='node green';d.id='node-'+n.name;
     d.style.left=(n.x*100)+'%'; d.style.top=(n.y*100)+'%';
     const tag=n.plane==='control'?'<div class="plane">control</div>':'';
-    d.innerHTML=`<div class="box"><span class="dot"></span><span class="name">${n.name}</span></div>${tag}<div class="sub" id="sub-${n.name}"></div>`;
+    d.innerHTML=`<div class="box"><span class="dot"></span><span class="name">${labelOf(n)}</span></div>${tag}<div class="sub" id="sub-${n.name}"></div>`;
     bay.appendChild(d); d.querySelector('.box').onclick=(ev)=>openFaultMenu(n.name,ev);});
   NODES.forEach(n=>{const c=document.createElement('div');c.className='blog';
     c.innerHTML=`<h3>${n}</h3><div class="body" id="blog-${n}"></div>`;blogs.appendChild(c);});
@@ -443,7 +446,7 @@ function onMsg(env){
   const {ch,t,data,wall}=env;
   curWall=wall||null;                    // real timestamp for any log line this event produces
   if(ch==='reload'){location.reload();return;}
-  if(ch==='hello'){buildPatchbay(data.topology);initScenarios(data.scenarios,data.scenario);
+  if(ch==='hello'){buildPatchbay(data.topology,data.sip_mode);initScenarios(data.scenarios,data.scenario);
     initSipBackend(data.sip_modes,data.requested_sip_mode,data.sip_host,data.sip_port);
     const sm=document.getElementById('sipmode');if(sm){const _m={native:'🟢 NATIVE (own SIP/RTP → Asterisk)',live:'🟢 LIVE (baresip → Asterisk)'};sm.textContent='SIP: '+(_m[data.sip_mode]||'sim')+(data.sip_error?(' ('+data.sip_error+')'):'');}
     audioStatus=data.audio||{};updateAudioTag();initParams(data.dtmf_params||{});
