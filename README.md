@@ -50,14 +50,16 @@ Real trace of `native → 600`, captured by [`tools/sip_trace.py`](tools/sip_tra
 the same stack the dashboard uses):
 
 ```
-0.000s  TX ──►  INVITE sip:600@127.0.0.1        SDP offer: m=audio 40008  PCMU/8000
-0.001s  RX ◄──  401 Unauthorized                WWW-Authenticate: Digest realm="asterisk", nonce=…
-                                                 Server: Asterisk PBX 22.9.0
+0.000s  TX ──►  INVITE                           SDP offer: m=audio 40008, PCMU/8000
+0.001s  RX ◄──  401 Unauthorized                 WWW-Authenticate: Digest realm="asterisk", nonce=…
+                                                  Server: Asterisk PBX 22.9.0
 0.001s  TX ──►  ACK
-0.001s  TX ──►  INVITE  +Authorization: Digest   response=… (re-INVITE with computed digest)
-  …s    RX ◄──  100 Trying → 200 OK              SDP answer: Asterisk's RTP port, PCMU/8000
-  …s    TX ──►  ACK                              dialog confirmed — media flowing
-        ── RTP ── G.711 µ-law, 50 pkt/s, two-way; the echo returns from Asterisk (0% loss)
+0.001s  TX ──►  INVITE (+Authorization: Digest)  response=… (re-INVITE with computed digest)
+0.001s  RX ◄──  100 Trying
+0.004s  RX ◄──  200 OK                            SDP answer: Asterisk's RTP port, PCMU/8000
+0.005s  TX ──►  ACK                              dialog confirmed — media flowing
+        ── RTP ── G.711 µ-law, 50 pkt/s, two-way; echo returns from Asterisk (0% loss) ──
+2.051s  TX ──►  BYE                              CallScope hangs up → Asterisk replies 200 OK
 ```
 
 **Verify it yourself in Wireshark / tcpdump** — loopback, SIP on `5062`, RTP `10000–20000` (Asterisk) / `40000` (CallScope):
