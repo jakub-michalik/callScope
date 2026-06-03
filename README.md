@@ -178,23 +178,79 @@ working `ctrl_tcp`, so native remains the recommended path.
 
 Upcoming phases (DESIGN §7, §13): replay/export.
 
-## Running (PC)
+## Requirements
 
+| Needed for | What | Notes |
+|---|---|---|
+| **Always** | **Python 3.12+** & `pip` | runs the dashboard + the SIP/RTP stack |
+| **Live Asterisk** | **Docker** + Docker Compose | only for the live-call demo; simulated mode needs nothing else |
+| *Mic/speaker audio* | **PortAudio** (`libportaudio2`) | for real mic → DTMF and echo; without it, falls back to a tone generator |
+| *Wire-level proof* | **tcpdump / Wireshark** | to inspect the real SIP/RTP packets |
+
+Pure Python deps (`numpy`, `fastapi`, `uvicorn`, `sounddevice`) — **no external softphone**
+(baresip/pjsua/linphone) is needed; the native SIP stack is built in.
+
+## Quick start
+
+### 1. Install
 ```bash
+git clone https://github.com/jakub-michalik/callScope.git
+cd callScope
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-python backend/run.py            # → http://localhost:8000
 ```
 
-In the dashboard: **Start Notruf (112)** plays back the number dialing — the token flows through
-the chain, the spectrum lights up bins, and the digits are decoded. **Cut AnalogLine→DTMF** cuts the
-signal (the token stops, no detection). The "tempo" slider slows the simulation down so you can watch it.
+### 2. Run — simulated (no infrastructure)
+```bash
+python backend/run.py            # → http://localhost:8000
+```
+**No Docker, no Asterisk.** The dashboard comes up fully simulated: dial from the keypad or the
+quick-dial chips, watch the token flow through the chain, the Goertzel spectrum light up, the SIP
+ladder play out, and inject faults / cut links to see the root-cause correlator localize them.
+
+### 3. Run — live against Asterisk (real SIP + RTP)
+
+**a) Start Asterisk in Docker** (binds **5062**, so it coexists with any host Asterisk on 5060):
+```bash
+cd asterisk
+docker compose up -d
+docker exec callscope-asterisk asterisk -rx "pjsip show transports"   # expect 0.0.0.0:5062
+cd ..
+```
+
+**b) Run CallScope in native mode:**
+```bash
+CALLSCOPE_SIP_MODE=native python backend/run.py     # → http://localhost:8000
+```
+The header should read **`SIP: 🟢 NATIVE (own SIP/RTP → Asterisk)`**. You can also switch the
+backend and set the Asterisk `host:port` live in the top bar — point it at `127.0.0.1:5062`.
+
+**c) Make real calls** — pick up the line, then dial:
+
+| Dial | Asterisk does |
+|---|---|
+| **600** | **Echo** — talk into the mic (use **headphones**), hear yourself back over real RTP |
+| **112** | Emergency: Answer + playback (real INVITE → 200 → ACK → RTP) |
+| **503** | Congestion → real `SIP_503` root cause |
+| **486** | Busy → `SIP_486` |
+| **700** | Ring a softphone (Linphone) registered to the bundled `phone` endpoint |
+| **500** | Ring CallScope itself (the native UAS auto-answers) |
+
+> **Header shows `sim`, or you get `SIP_401`?** You're dialing the wrong Asterisk — a host service
+> on 5060 instead of the container on 5062. Set the **Asterisk** port field in the top bar to
+> `5062`. Full setup (incl. calling from a phone) is in [`ASTERISK.md`](ASTERISK.md).
+
+### 4. Prove it's real
+```bash
+sudo tcpdump -i lo -n -A 'udp port 5062'        # raw SIP in the console while you call
+python tools/sip_trace.py 600 127.0.0.1 5062    # app-level SIP/RTP trace of the same call
+```
 
 ## Tests
 
 ```bash
 . .venv/bin/activate
-python -m pytest -q                 # 80 tests: DTMF vectors, blocks, chain, correlator,
+python -m pytest -q                 # 83 tests: DTMF vectors, blocks, chain, correlator,
                                     #   scenarios, SIP, digest (RFC 2617), RTP/G.711, native UAC
 python -m pytest tests/test_dtmf.py -q
 python -m pytest tests/test_sip_native.py -q   # native UAC: full call vs a reference UAS
