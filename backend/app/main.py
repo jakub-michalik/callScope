@@ -237,8 +237,9 @@ class Runtime:
         for key, container in (("asterisk", "callscope-asterisk"),
                                ("baresip", "callscope-baresip")):
             try:
-                r = subprocess.run(["docker", "logs", "--tail", str(tail), container],
-                                   capture_output=True, text=True, timeout=3)
+                r = subprocess.run(
+                    ["docker", "logs", "--timestamps", "--tail", str(tail), container],
+                    capture_output=True, text=True, timeout=3)
                 text = (r.stdout + r.stderr).strip()
                 out[key] = text or "(no output)"
             except Exception as e:                       # noqa: BLE001
