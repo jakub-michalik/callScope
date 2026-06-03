@@ -13,21 +13,28 @@ Target: laptop/PC for the demo (microphone + speakers as real audio I/O), the sa
 We model the signal chain as a **block graph** (like a flowgraph in GNU Radio, but with a dashboard like sngrep). Each block has its **own, dedicated DSP path** — an independent processing unit with its own input, output, preview, fault injector, disconnect switch, and problem detector.
 
 ```
-  🎤 mic                                                              🔊 speaker
-   │                                                                      ▲
-   ▼                                                                      │
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐  ┌──────────┐
-│ DIALER   │──▶│ ANALOG   │──▶│ DTMF     │──▶│ CODEC /  │──▶│ SIP      │─▶│ GATEWAY  │
-│ (source) │ p │ LINE/FXS │ p │ DETECTOR │ p │ RTP      │ p │ SIGNALING│p │ /PROVIDER│
-└──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘  └──────────┘
-  DSP path       DSP path       DSP path       DSP path       ctrl path      DSP path
-     │ tap          │ tap          │ tap          │ tap          │ tap          │ tap
-     ▼              ▼              ▼              ▼              ▼              ▼
-  ═══════════════════════ EVENT BUS (signal + diagnostics + log) ════════════════════
-                                       │
-                                       ▼
-                              DASHBOARD (React)
+  🎤 mic                          ┌────────────┐                         🔊 speaker
+   │              control plane:  │    SIP     │  gates the media —          ▲
+   │                        ┌────▶│ SIGNALING  │────┐  RTP flows only         │
+   │                        │     └────────────┘    │  once the call is up    │
+   ▼     media plane    ctrl│                        ▼                         │
+┌────────┐  ┌────────┐  ┌───┴────┐  ┌────────┐  ┌────────┐
+│ DIALER │─▶│ ANALOG │─▶│  DTMF  │─▶│ CODEC/ │─▶│GATEWAY │
+│(source)│ p│LINE/FXS│ p│DETECTOR│ p│  RTP   │ p│PROVIDER│
+└───┬────┘  └───┬────┘  └───┬────┘  └───┬────┘  └───┬────┘
+    │ tap       │ tap       │ tap       │ tap       │ tap
+    ▼           ▼           ▼           ▼           ▼
+ ═══════════ EVENT BUS (signal + diagnostics + log) ═══════════
+                              │
+                              ▼
+                     DASHBOARD (browser, over WebSocket)
 ```
+
+The **media plane** carries audio/RTP straight through `Dialer → AnalogLine → DTMF →
+CodecRTP → Gateway`. **SIP** is on the **control plane**: it sits between DTMF (the dialed
+number) and CodecRTP, and **gates** the media — RTP only flows once signaling reaches
+*in-call*. (SDP negotiated by SIP is exactly what configures CodecRTP, so the gate belongs
+there, not at the Gateway.)
 
 `p` = **patch point** (the connection between blocks): it can be **cut (signal disconnected)** or **disturbed** (delay, attenuation, noise, packet loss).
 
