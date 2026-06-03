@@ -6,7 +6,7 @@
 [![Documentation](https://img.shields.io/badge/docs-online-2563eb)](https://jakub-michalik.github.io/callScope/)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 
-📖 **Documentation: https://jakub-michalik.github.io/callScope/**
+### 📖 [Read the documentation → jakub-michalik.github.io/callScope](https://jakub-michalik.github.io/callScope/)
 
 **An oscilloscope for phone calls.** A live, in-browser test bench that walks a call
 through the whole **FXS → VoIP** chain — analog dialer → FXS line → DTMF decode → SIP →
