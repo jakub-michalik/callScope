@@ -25,6 +25,13 @@ root-cause correlator.
    screenshots
 
 .. toctree::
+   :caption: Guides
+   :maxdepth: 2
+
+   troubleshooting
+   changelog
+
+.. toctree::
    :caption: Reference
    :maxdepth: 2
 

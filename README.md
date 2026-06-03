@@ -23,7 +23,7 @@ SIP + RTP stack (no external softphone).
 SIP signaling + digest auth, RTP/G.711 media, a root-cause correlator over the signal
 chain, and real interop with Asterisk — end to end, with live verification.
 
-Docs: [**online API reference**](https://jakub-michalik.github.io/callScope/) · [`PLAN.md`](PLAN.md) · [`DESIGN.md`](DESIGN.md) · [`ASTERISK.md`](ASTERISK.md).
+Docs: [**online docs**](https://jakub-michalik.github.io/callScope/) · [**Investigating problems**](https://jakub-michalik.github.io/callScope/troubleshooting.html) · [`PLAN.md`](PLAN.md) · [`DESIGN.md`](DESIGN.md) · [`ASTERISK.md`](ASTERISK.md) · [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Screenshots
 
