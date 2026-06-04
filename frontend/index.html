@@ -54,6 +54,11 @@
   .full{grid-column:1/3}
   /* a half-width grid cell holding two quarter-width cards side by side */
   .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
+  /* patchbay on the left, oscilloscope + spectrum stacked beside it on the right */
+  .bayrow{grid-column:1/3;display:grid;grid-template-columns:1.7fr 1fr;gap:14px;align-items:stretch}
+  .scopes{display:grid;grid-template-rows:1fr 1fr;gap:14px;min-width:0}
+  .scopes .card{display:flex;flex-direction:column;min-height:0}
+  .scopes canvas{flex:1;height:auto;min-height:84px}
   .card{background:var(--panel);border:1px solid var(--line);
     border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(17,24,39,.04),0 8px 22px rgba(17,24,39,.06)}
   .card:hover{border-color:var(--line2)}
@@ -219,14 +224,26 @@
 </div>
 
 <div class="wrap">
-  <div class="card full">
-    <h2>Patchbay — signal flow</h2>
-    <div id="bay">
-      <svg id="edges"></svg>
-      <!-- nodes injected -->
+  <div class="bayrow">
+    <div class="card">
+      <h2>Patchbay — signal flow</h2>
+      <div id="bay">
+        <svg id="edges"></svg>
+        <!-- nodes injected -->
+      </div>
+      <div class="rootcause" id="rootcause"></div>
+      <div class="hint">Click a block to inject/clear a fault · use "Cut" below to break a link · the correlator localizes the root cause.</div>
     </div>
-    <div class="rootcause" id="rootcause"></div>
-    <div class="hint">Click a block to inject/clear a fault · use "Cut" below to break a link · the correlator localizes the root cause.</div>
+    <div class="scopes">
+      <div class="card">
+        <h2>Oscilloscope — line output</h2>
+        <canvas id="scope" width="560" height="120"></canvas>
+      </div>
+      <div class="card">
+        <h2>Spectrum — DTMF bins (Goertzel)</h2>
+        <canvas id="spec" width="560" height="120"></canvas>
+      </div>
+    </div>
   </div>
 
   <div class="duo">
@@ -293,15 +310,6 @@
       Raise "Twist max" when detecting from a microphone (acoustics attenuate low frequencies).</div>
   </div>
 
-  <div class="card">
-    <h2>Oscilloscope — line output</h2>
-    <canvas id="scope" width="560" height="120"></canvas>
-  </div>
-
-  <div class="card">
-    <h2>Spectrum — DTMF bins (Goertzel)</h2>
-    <canvas id="spec" width="560" height="120"></canvas>
-  </div>
 
 </div>
 
