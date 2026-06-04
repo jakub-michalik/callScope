@@ -3,6 +3,11 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.5] — 2026-06-04
+### Added
+- **Project logo** (`docs/_static/logo.svg`) — an oscilloscope tone-burst mark; shown next to
+  the title in the README and as the docs sidebar logo + favicon.
+
 ## [0.7.4] — 2026-06-04
 ### Fixed
 - **Live baresip backend stuck at INVITE.** The `ctrl_tcp` socket kept the 2 s connect

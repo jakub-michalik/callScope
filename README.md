@@ -1,4 +1,4 @@
-# CallScope
+# <img src="docs/_static/logo.svg" alt="" width="34" align="top"> CallScope
 
 [![CI](https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml/badge.svg)](https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml)
 [![Docs](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml/badge.svg)](https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml)
