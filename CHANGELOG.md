@@ -3,6 +3,35 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.4] — 2026-06-04
+### Fixed
+- **Live baresip backend stuck at INVITE.** The `ctrl_tcp` socket kept the 2 s connect
+  timeout, so the reader thread's `recv()` raised `socket.timeout` after 2 s of silence and
+  died before the call event arrived — the ladder froze at INVITE. Connect with a timeout,
+  then block in the read loop.
+- **Hang-up is now honoured in any non-idle state** (incl. `CALLING`); it was a no-op while a
+  call was still ringing out, leaving a live mic call running.
+- **Periodic re-REGISTER no longer pollutes the call-flow ladder** and no longer rewrites the
+  call state — a `regint` refresh landing mid-call could knock an active call to `IDLE`.
+### Added
+- **Opt-in host audio for the baresip container** (`docker-compose.audio.yml`): routes
+  baresip's ALSA `default` through the ALSA→PulseAudio plugin to the host's PipeWire/Pulse
+  over loopback TCP, so dialling echo (600) on the `live` backend is audible.
+- Reusable `tools/capture_screenshots.py` to refresh the docs screenshots from the live UI.
+### Changed
+- **Cleaner container-log overlay**: silence baresip's `audio=N/N (bit/s)` status spam at the
+  source (`statmode_default off`), strip ANSI colour codes, and drop Asterisk's healthcheck
+  `Remote UNIX connection` noise — so REGISTER/INVITE/Answer/Echo are actually visible.
+- Refreshed dashboard screenshots (native mode, real call to Asterisk echo).
+
+## [0.7.3] — 2026-06-04
+### Fixed
+- **baresip live media**: replaced the 48 kHz-only `ausine` audio source with an `aufile`
+  reading an 8 kHz WAV, so PCMU/8000 calls actually establish (were failing with
+  "session closed: Operation not supported").
+### Added
+- **Timestamps** on the dashboard's container-log overlay (`docker logs --timestamps`).
+
 ## [0.7.2] — 2026-06-03
 ### Added
 - **Investigating problems** guide in the docs — the fault-analysis workflow (dashboard → SIP
