@@ -114,6 +114,7 @@ class SipAdapter:
         self.available = False
         self.error: str | None = None
         self.force_code = None      # not used in live mode (the dialplan decides)
+        self._registered = False    # show the registration once, not every regint refresh
         self.reset()
 
     # --- SipSession-compatible API ---
@@ -254,8 +255,21 @@ class SipAdapter:
                     ev = json.loads(p)
                 except ValueError:
                     continue
+                typ = ev.get("type", "")
                 tr = map_event(ev)
                 if tr is None:
+                    continue
+                # Registration is orthogonal to the call flow: never let a REGISTER
+                # event rewrite the call state (a periodic regint refresh must not knock
+                # an active call to IDLE), and surface it once — not every 60 s, where it
+                # would clutter the ladder and appear after an unrelated hang-up.
+                if typ in ("REGISTER_OK", "REGISTER_FAIL", "UNREGISTERING"):
+                    was = self._registered
+                    self._registered = (typ == "REGISTER_OK")
+                    if typ == "REGISTER_OK" and was:
+                        continue                 # suppress the periodic refresh
+                    for msg in tr["msgs"]:
+                        self._q.put(msg)
                     continue
                 self.state = tr["state"]
                 self.media = tr["media"]
