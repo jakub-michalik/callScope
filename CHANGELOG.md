@@ -3,6 +3,12 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.7] — 2026-06-04
+### Fixed
+- **Docs sidebar logo not rendering.** The `max-width`-only rule in `custom.css` collapsed the
+  logo to zero because the SVG had no intrinsic dimensions. Give the SVG explicit `width`/
+  `height` and set an explicit `width` in CSS. Verified by rendering the built page.
+
 ## [0.7.6] — 2026-06-04
 ### Changed
 - **Refined logo** — cleaner rounded badge with a smooth single-cycle oscilloscope trace

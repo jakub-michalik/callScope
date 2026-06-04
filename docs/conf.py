@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "backend")))
 project = "CallScope"
 author = "Jakub Michalik"
 copyright = "2026, Jakub Michalik"
-release = "0.7.6"
-version = "0.7.6"
+release = "0.7.7"
+version = "0.7.7"
 
 extensions = [
     "sphinx.ext.autodoc",
