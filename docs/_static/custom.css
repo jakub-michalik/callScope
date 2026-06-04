@@ -1,0 +1,7 @@
+/* Keep the sidebar logo compact (the default furo size is too large). */
+.sidebar-logo {
+    max-width: 56px;
+}
+.sidebar-logo-container {
+    margin: 0.5rem auto 0.3rem;
+}

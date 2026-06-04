@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "backend")))
 project = "CallScope"
 author = "Jakub Michalik"
 copyright = "2026, Jakub Michalik"
-release = "0.7.5"
-version = "0.7.5"
+release = "0.7.6"
+version = "0.7.6"
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -42,6 +42,7 @@ html_static_path = ["_static"]
 html_logo = "_static/logo.svg"
 html_favicon = "_static/logo.svg"
 html_js_files = ["versions.js"]
+html_css_files = ["custom.css"]
 
 # add a version/release switcher to the furo sidebar (populated from versions.json)
 html_sidebars = {

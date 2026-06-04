@@ -2,21 +2,17 @@
   <defs>
     <linearGradient id="cs-bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#3b82f6"/>
-      <stop offset="1" stop-color="#1e40af"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
     </linearGradient>
   </defs>
   <!-- rounded-square badge -->
-  <rect x="4" y="4" width="56" height="56" rx="15" fill="url(#cs-bg)"/>
-  <!-- oscilloscope graticule -->
-  <g stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5">
-    <line x1="32" y1="12" x2="32" y2="52"/>
-    <line x1="12" y1="38" x2="52" y2="38"/>
-  </g>
-  <!-- scope trace: flat baseline with a DTMF tone burst -->
-  <path d="M11 38 H22 L25 38 L28 22 L31 52 L34 25 L37 47 L40 38 L43 38 H53"
-        fill="none" stroke="#ffffff" stroke-width="3.2"
-        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="6" y="6" width="52" height="52" rx="15" fill="url(#cs-bg)"/>
+  <!-- faint baseline (oscilloscope graticule) -->
+  <line x1="14" y1="34" x2="50" y2="34" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.4"/>
+  <!-- smooth scope trace: flat baseline with one clean sine cycle -->
+  <path d="M13 34 H22 C24.5 34 25 21 28 21 C31 21 31.5 47 34.5 47 C37.5 47 38 34 40 34 H51"
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- live indicator -->
-  <circle cx="49" cy="17" r="6" fill="#1e40af"/>
-  <circle cx="49" cy="17" r="4" fill="#22c55e"/>
+  <circle cx="46" cy="19" r="6.5" fill="#1d4ed8"/>
+  <circle cx="46" cy="19" r="4" fill="#34d399"/>
 </svg>

@@ -3,6 +3,16 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.6] — 2026-06-04
+### Changed
+- **Refined logo** — cleaner rounded badge with a smooth single-cycle oscilloscope trace
+  (replacing the sharper zig-zag) and a softer green live dot.
+- **Smaller docs sidebar logo** via `_static/custom.css` (the default furo size was too large).
+### Added
+- `tools/sip_ladder.sh` — watch the SIP call-flow in the console (sngrep arrow ladder, or a
+  tcpdump text fallback). Captures on `lo` by default (CallScope's SIP is loopback; `-d any`
+  yields LINUX_SLL2 which sngrep can't dissect).
+
 ## [0.7.5] — 2026-06-04
 ### Added
 - **Project logo** (`docs/_static/logo.svg`) — an oscilloscope tone-burst mark; shown next to
