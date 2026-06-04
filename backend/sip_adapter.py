@@ -131,8 +131,14 @@ class SipAdapter:
         self._send({"command": "dial", "params": number})
 
     def hangup(self, t: float):
-        if self.state in ("INCALL", "ANSWERED", "RINGING"):
+        # Send unconditionally unless clearly idle: the call may still be in CALLING
+        # (ringing out, ladder not yet at INCALL), and we must still cancel it — else
+        # the UI hang-up is a no-op and a live mic call keeps running. baresip ignores
+        # a hangup when there is no active call, so this is always safe.
+        if self.state != "IDLE":
             self._send({"command": "hangup"})
+        self.state = "TERMINATED"
+        self.media = False
         return []
 
     def tick(self, t: float) -> list:
