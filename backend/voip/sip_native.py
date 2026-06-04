@@ -234,10 +234,15 @@ class SipNativeBackend:
         self._d["ruri"] = ruri
         self._send("\r\n".join(h))
 
-    def _ack(self):
+    def _ack(self, to_tag=None):
+        # For a non-2xx response the ACK MUST echo the To-tag of THAT response
+        # (RFC 3261 §17.1.1.3). Otherwise the server transaction never matches the
+        # ACK and keeps retransmitting the failure — a flood of 404/484 that does
+        # not stop on hang-up. (For a 2xx the dialog To-tag in self._d is correct.)
+        tag = to_tag or self._d.get("ttag")
         to = f"<sip:{self.number}@{self.registrar}>"
-        if self._d.get("ttag"):
-            to += f";tag={self._d['ttag']}"
+        if tag:
+            to += f";tag={tag}"
         h = [f"ACK {self._d['ruri']} SIP/2.0",
              f"Via: SIP/2.0/UDP {self.local_ip}:{self.sip_port};branch=z9hG4bK{random.getrandbits(32):x};rport",
              "Max-Forwards: 70",
@@ -327,14 +332,14 @@ class SipNativeBackend:
                 self._emit("in", code, f"{code} {reason}",
                            f'digest challenge · realm="{chp.get("realm", "")}" '
                            f'nonce={chp.get("nonce", "")[:10]}…')
-                self._ack()                  # ACK the 401 (INVITE transaction)
+                self._ack(to_tag)            # ACK the 401 (echo its To-tag)
                 auth = digest.authorization("INVITE", self._d["ruri"], self.user,
                                             self.password, chp)
                 self._emit("out", "INVITE", "INVITE (authenticated)",
                            f"+ Authorization: Digest username=\"{self.user}\", response=…")
                 self._invite(auth=auth)
             elif "INVITE" in cseq:           # auth kept being rejected -> give up
-                self._ack()
+                self._ack(to_tag)
                 self.state = "FAILED"
                 self.fail_code = "401"
                 self._emit("in", "401", "401 Unauthorized",
@@ -356,7 +361,7 @@ class SipNativeBackend:
             self.state = "TERMINATED"
             self._emit("in", "200", "200 OK", "BYE confirmed — call released")
         elif code[0] in ("4", "5", "6") and "INVITE" in cseq:
-            self._ack()
+            self._ack(to_tag)
             self.state = "FAILED"
             self.media = False
             self.fail_code = code
