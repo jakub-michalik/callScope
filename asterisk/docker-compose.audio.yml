@@ -1,0 +1,20 @@
+# Opt-in overlay: give the baresip container the host microphone + speaker, so
+# dialling echo (600) on the `live` backend is actually audible.
+#
+#   1. Expose the host's PipeWire/PulseAudio over loopback TCP (once per session):
+#        pactl load-module module-native-protocol-tcp \
+#            port=4713 auth-ip-acl=127.0.0.1 auth-anonymous=1
+#   2. Start baresip with this overlay:
+#        docker compose -f docker-compose.yml -f docker-compose.audio.yml \
+#            --profile live up -d --build baresip
+#
+# baresip's ALSA "default" is routed (via the ALSA->PulseAudio plugin baked into
+# the image) to the host's PipeWire/PulseAudio. We reach it over loopback TCP
+# rather than the unix socket because snap-packaged Docker cannot bind-mount the
+# host's /run/user/<uid>/pulse/native socket. The container already uses host
+# networking, so tcp:127.0.0.1:4713 lands on the host's PulseAudio.
+services:
+  baresip:
+    environment:
+      BARESIP_AUDIO: host
+      PULSE_SERVER: tcp:127.0.0.1:4713
