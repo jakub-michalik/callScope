@@ -196,6 +196,8 @@ class SipAdapter:
                     # menu.so provides the `dial`/`hangup` commands the ctrl_tcp interface drives;
                     # without it baresip answers "command not found (dial)".
                     "module\t\tmenu.so\n"
+                    # silence the menu module's periodic "audio=N/N (bit/s)" status spam
+                    "statmode_default\toff\n"
                     # a codec module is mandatory: without it baresip loads 0 codecs and
                     # silently refuses to register the account.
                     "module\t\tg711.so\n"
@@ -211,6 +213,10 @@ class SipAdapter:
         for _ in range(retries):
             try:
                 self._sock = socket.create_connection((self.ctrl_host, self.ctrl_port), timeout=2)
+                # connect with a timeout, then block indefinitely in the read loop:
+                # otherwise the 2 s timeout makes recv() raise socket.timeout (an OSError)
+                # after 2 s of silence, killing the reader thread before any call event.
+                self._sock.settimeout(None)
                 return
             except OSError as e:
                 last = e

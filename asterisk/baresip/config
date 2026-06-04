@@ -4,6 +4,9 @@ module  menu.so
 module  g711.so
 module  aufile.so
 module  ctrl_tcp.so
+# silence the menu module's periodic "audio=N/N (bit/s)" call-status line, which
+# otherwise floods stdout ~10x/s and drowns the dashboard's container-log view.
+statmode_default  off
 ctrl_tcp_listen  0.0.0.0:4444
 sip_listen  0.0.0.0:5078
 audio_source  aufile,/root/.baresip/audio8k.wav

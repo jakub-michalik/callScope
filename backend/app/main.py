@@ -6,6 +6,7 @@ Dashboard: http://localhost:8000
 from __future__ import annotations
 import asyncio
 import os
+import re
 import subprocess
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
@@ -230,9 +231,23 @@ class Runtime:
                           "severity": "error", "t": self.graph.t})
         return conds
 
-    @staticmethod
-    def _docker_logs(tail: int = 120) -> dict:
-        """Tail the bundled Asterisk/baresip container logs (for the dashboard overlay)."""
+    # noise each container emits that drowns out the meaningful call-flow lines
+    _LOG_NOISE = {
+        # baresip prints a call-status line (~10×/s) while a call is up
+        "baresip": re.compile(r"\(bit/s\)"),
+        # the Asterisk image's healthcheck opens a CLI socket every 30 s
+        "asterisk": re.compile(r"Remote UNIX connection"),
+    }
+    _ANSI = re.compile(r"\x1b\[[0-9;]*m")          # strip terminal colour codes
+
+    @classmethod
+    def _docker_logs(cls, tail: int = 400) -> dict:
+        """Tail the bundled Asterisk/baresip container logs (for the dashboard overlay).
+
+        We pull a generous tail and then drop each container's known noise so the few
+        meaningful lines (REGISTER, INVITE, Answer/Echo, errors) are actually visible —
+        otherwise the status spam fills the whole window and the log looks empty of events.
+        """
         out = {}
         for key, container in (("asterisk", "callscope-asterisk"),
                                ("baresip", "callscope-baresip")):
@@ -240,8 +255,14 @@ class Runtime:
                 r = subprocess.run(
                     ["docker", "logs", "--timestamps", "--tail", str(tail), container],
                     capture_output=True, text=True, timeout=3)
-                text = (r.stdout + r.stderr).strip()
-                out[key] = text or "(no output)"
+                noise = cls._LOG_NOISE.get(key)
+                lines = []
+                for ln in (r.stdout + r.stderr).splitlines():
+                    ln = cls._ANSI.sub("", ln).rstrip()
+                    if not ln or (noise and noise.search(ln)):
+                        continue
+                    lines.append(ln)
+                out[key] = "\n".join(lines[-120:]) or "(no output)"
             except Exception as e:                       # noqa: BLE001
                 out[key] = f"(unavailable: {type(e).__name__})"
         return out
