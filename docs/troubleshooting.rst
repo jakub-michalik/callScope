@@ -38,12 +38,23 @@ The live path is real SIP/RTP on loopback — SIP on ``5062``, RTP ``10000–200
 
 .. code-block:: bash
 
-   # raw SIP in the console while you place a call
+   # the SIP call-flow ("ladder") in the console — clean request/response lines, live
+   sudo tcpdump -i lo -A -n -s0 -l 'udp port 5062' \
+     | grep --line-buffered -oaE '(INVITE|ACK|BYE|CANCEL|REGISTER|OPTIONS) sip:.*|SIP/2\.0 [0-9]+ .*'
+
+   # watch the RTP media stream (G.711 = ~50 packets/s while a call is up)
+   sudo tcpdump -i lo -n 'udp portrange 10000-20000'
+
+   # raw SIP, full message bodies, while you place a call
    sudo tcpdump -i lo -n -A 'udp port 5062'
 
    # capture SIP + RTP to a pcap, open in Wireshark
    sudo tcpdump -i lo -n -s0 'udp and (port 5062 or portrange 10000-20000 or portrange 40000-40010)' -w /tmp/callscope.pcap
    wireshark /tmp/callscope.pcap
+
+Capture on ``lo`` (CallScope's SIP/RTP is loopback); ``-i any`` yields the ``LINUX_SLL2``
+link type, which ``sngrep`` cannot dissect. ``tools/sip_ladder.sh`` wraps the ladder
+(``sngrep`` if installed, else the ``tcpdump`` fallback above).
 
 In Wireshark: **Telephony ▸ VoIP Calls ▸ Flow Sequence** is the same ladder as the dashboard,
 straight off the wire; **RTP ▸ Play Streams** plays back the captured audio.
