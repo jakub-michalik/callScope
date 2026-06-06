@@ -1,6 +1,25 @@
 CallScope
 =========
 
+.. |ci| image:: https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/jakub-michalik/callScope/actions/workflows/ci.yml
+   :alt: CI
+.. |docs| image:: https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml/badge.svg
+   :target: https://github.com/jakub-michalik/callScope/actions/workflows/docs.yml
+   :alt: Docs
+.. |release| image:: https://img.shields.io/github/v/release/jakub-michalik/callScope?display_name=tag&sort=semver
+   :target: https://github.com/jakub-michalik/callScope/releases
+   :alt: Release
+.. |license| image:: https://img.shields.io/badge/license-MIT-green
+   :target: https://github.com/jakub-michalik/callScope/blob/main/LICENSE
+   :alt: License: MIT
+.. |python| image:: https://img.shields.io/badge/python-3.12-blue
+   :alt: Python
+
+|ci| |docs| |release| |license| |python|
+
+📦 **Repository:** `github.com/jakub-michalik/callScope <https://github.com/jakub-michalik/callScope>`_
+
 **An oscilloscope for phone calls.** A live, in-browser test bench that walks a call
 through the whole **FXS → VoIP** chain — analog dialer → FXS line → DTMF decode → SIP →
 RTP/codec → gateway — visualizes every stage, lets you inject faults and cut links, and
