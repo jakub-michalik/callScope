@@ -13,12 +13,10 @@ CallScope
 .. |license| image:: https://img.shields.io/badge/license-MIT-green
    :target: https://github.com/jakub-michalik/callScope/blob/main/LICENSE
    :alt: License: MIT
-.. |python| image:: https://img.shields.io/badge/python-3.12-blue
-   :alt: Python
 
 .. rst-class:: badges
 
-|ci| |docs| |release| |license| |python|
+|ci| |docs| |release| |license|
 
 📦 **Repository:** `github.com/jakub-michalik/callScope <https://github.com/jakub-michalik/callScope>`_
 
