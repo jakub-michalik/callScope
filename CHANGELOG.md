@@ -3,6 +3,18 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.8] — 2026-06-06
+### Fixed
+- **Native SIP 4xx retransmission flood.** A failure response (404/484/486/503) was ACKed
+  without the response's To-tag, so the server transaction never matched the ACK and Asterisk
+  kept retransmitting the failure — a flood of 404/484 that didn't clear on hang-up. ACK
+  non-2xx responses with their own To-tag (RFC 3261 §17.1.1.3).
+### Changed
+- **Dashboard layout**: the oscilloscope and spectrum now sit beside a narrower patchbay
+  (instead of a separate row below), saving vertical space.
+### Added
+- **Docs landing page**: repository link + status badges (CI / Docs / release / license / python).
+
 ## [0.7.7] — 2026-06-04
 ### Fixed
 - **Docs sidebar logo not rendering.** The `max-width`-only rule in `custom.css` collapsed the
