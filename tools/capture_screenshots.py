@@ -88,7 +88,9 @@ async def _dial(number: str):
 async def main():
     os.makedirs(OUT, exist_ok=True)
     env = {**os.environ, "PYTHONPATH": os.path.join(ROOT, "backend"),
-           "CALLSCOPE_SIP_MODE": "native", "CALLSCOPE_SIP_PORT": "5062"}
+           "CALLSCOPE_SIP_MODE": "native", "CALLSCOPE_SIP_PORT": "5062",
+           # use non-default local ports so capture coexists with a running instance
+           "CALLSCOPE_SIP_LOCAL_PORT": "5074", "CALLSCOPE_RTP_LOCAL_PORT": "40040"}
     app = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app",
                             "--host", "127.0.0.1", "--port", str(PORT), "--log-level", "warning"],
                            env=env, cwd=ROOT)

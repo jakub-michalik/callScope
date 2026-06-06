@@ -3,6 +3,16 @@
 All notable changes to CallScope. Hosted docs: <https://jakub-michalik.github.io/callScope/> ·
 Releases: <https://github.com/jakub-michalik/callScope/releases>
 
+## [0.7.9] — 2026-06-06
+### Changed
+- **Dashboard top row** now holds three windows — patchbay, the oscilloscope/spectrum stack,
+  and the **DTMF detection-parameters** panel (moved up from a full-width row below).
+- Refreshed docs screenshots to the new layout.
+### Added
+- `CALLSCOPE_SIP_LOCAL_PORT` / `CALLSCOPE_RTP_LOCAL_PORT` env vars to override the native
+  backend's local SIP/RTP ports, so a second instance (e.g. screenshot capture) can run
+  alongside a running one.
+
 ## [0.7.8] — 2026-06-06
 ### Fixed
 - **Native SIP 4xx retransmission flood.** A failure response (404/484/486/503) was ACKed

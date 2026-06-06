@@ -73,8 +73,13 @@ class Runtime:
         port = self.sip_port
         def _native():
             from voip.sip_native import SipNativeBackend
+            # local SIP/RTP ports are overridable so a second instance can run
+            # alongside one already bound to the defaults (e.g. screenshot capture).
+            lport = int(os.environ.get("CALLSCOPE_SIP_LOCAL_PORT", "5070"))
+            rport = int(os.environ.get("CALLSCOPE_RTP_LOCAL_PORT", "40000"))
             return SipNativeBackend(registrar=host, user=user, password=pw,
-                                    registrar_port=port).start_stack()
+                                    registrar_port=port, sip_port=lport,
+                                    rtp_port=rport).start_stack()
         if mode == "native":
             try:
                 a = _native()
