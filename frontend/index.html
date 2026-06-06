@@ -55,7 +55,7 @@
   /* a half-width grid cell holding two quarter-width cards side by side */
   .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:stretch}
   /* patchbay on the left, oscilloscope + spectrum stacked beside it on the right */
-  .bayrow{grid-column:1/3;display:grid;grid-template-columns:1.7fr 1fr;gap:14px;align-items:stretch}
+  .bayrow{grid-column:1/3;display:grid;grid-template-columns:1.6fr 1fr 1.15fr;gap:14px;align-items:stretch}
   .scopes{display:grid;grid-template-rows:1fr 1fr;gap:14px;min-width:0}
   .scopes .card{display:flex;flex-direction:column;min-height:0}
   .scopes canvas{flex:1;height:auto;min-height:84px}
@@ -244,6 +244,23 @@
         <canvas id="spec" width="560" height="120"></canvas>
       </div>
     </div>
+    <div class="card">
+      <h2>DTMF — detection parameters (live)</h2>
+      <div class="prm">
+        <label>SNR min <b id="v_snr">8</b> dB
+          <span class="info" data-tip="How far each tone must stand out above the background (the mean energy of the other frequency bins), in dB. Higher = ignores more noise but may miss weak tones; lower = catches quiet tones but risks false digits. Tip: read the live SNR of a real tone and set this a few dB below it.">i</span>
+          <input id="p_snr" type="range" min="2" max="20" step="0.5" value="8"></label>
+        <label>Twist max <b id="v_tw">12</b> dB
+          <span class="info" data-tip="Twist = level difference (dB) between the high-group and low-group tone of a DTMF pair. Microphones and small speakers weaken the low tones, so mic input shows high twist. Raise this to tolerate it; too high accepts malformed tones. Network spec ≈ 8 dB.">i</span>
+          <input id="p_tw" type="range" min="4" max="24" step="0.5" value="12"></label>
+        <label>Min tone duration <b id="v_mt">80</b> ms
+          <span class="info" data-tip="How long a tone must stay stable on the SAME digit before it is accepted (ms). Higher rejects brief noise glitches → far fewer false digits, but you must hold each key longer. ~100 ms matches a real dialer; 40 ms is the ITU receiver floor.">i</span>
+          <input id="p_mt" type="range" min="20" max="160" step="10" value="80"></label>
+      </div>
+      <div class="live">live reading: &nbsp; SNR L/H <b id="l_snr">— / —</b> dB
+        &nbsp;·&nbsp; twist <b id="l_tw">—</b> dB
+        <span class="info" data-tip="Live measurement of the current window. SNR L/H = how far the low- and high-group peaks rise above the background. twist = level imbalance between them.">i</span></div>
+    </div>
   </div>
 
   <div class="duo">
@@ -288,26 +305,6 @@
           RX ◀── <b id="rtp_rx">0</b> &nbsp;·&nbsp; TX ──▶ <b id="rtp_tx">0</b> &nbsp;pkts</div>
       </div>
     </div>
-  </div>
-
-  <div class="card full">
-    <h2>DTMF — detection parameters (live)</h2>
-    <div class="prm" style="flex-direction:row;flex-wrap:wrap;gap:22px">
-      <label>SNR min <b id="v_snr">8</b> dB
-        <span class="info" data-tip="How far each tone must stand out above the background (the mean energy of the other frequency bins), in dB. Higher = ignores more noise but may miss weak tones; lower = catches quiet tones but risks false digits. Tip: read the live SNR of a real tone and set this a few dB below it.">i</span>
-        <input id="p_snr" type="range" min="2" max="20" step="0.5" value="8"></label>
-      <label>Twist max <b id="v_tw">12</b> dB
-        <span class="info" data-tip="Twist = level difference (dB) between the high-group and low-group tone of a DTMF pair. Microphones and small speakers weaken the low tones, so mic input shows high twist. Raise this to tolerate it; too high accepts malformed tones. Network spec ≈ 8 dB.">i</span>
-        <input id="p_tw" type="range" min="4" max="24" step="0.5" value="12"></label>
-      <label>Min tone duration <b id="v_mt">80</b> ms
-        <span class="info" data-tip="How long a tone must stay stable on the SAME digit before it is accepted (ms). Higher rejects brief noise glitches → far fewer false digits, but you must hold each key longer. ~100 ms matches a real dialer; 40 ms is the ITU receiver floor.">i</span>
-        <input id="p_mt" type="range" min="20" max="160" step="10" value="80"></label>
-    </div>
-    <div class="live">live reading: &nbsp; SNR L/H <b id="l_snr">— / —</b> dB
-      &nbsp;·&nbsp; twist <b id="l_tw">—</b> dB
-      <span class="info" data-tip="Live measurement of the current window. SNR L/H = how far the low- and high-group peaks rise above the background. twist = level imbalance between them. Use these numbers to choose the thresholds above.">i</span></div>
-    <div class="hint">Raise "SNR min" if it picks up noise; lower it if it misses quiet tones.
-      Raise "Twist max" when detecting from a microphone (acoustics attenuate low frequencies).</div>
   </div>
 
 
