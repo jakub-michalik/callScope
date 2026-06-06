@@ -7,3 +7,14 @@
 .sidebar-logo-container {
     margin: 0.5rem auto 0.3rem;
 }
+
+/* Status badges: align every badge on the same line (targeted ones are wrapped in
+   <a>, the untargeted one is a bare <img> — middle-align both so none sits higher). */
+.badges img {
+    vertical-align: middle;
+    margin: 0 3px 0 0;
+}
+.badges a {
+    text-decoration: none;
+    border-bottom: 0;
+}

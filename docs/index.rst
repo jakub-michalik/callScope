@@ -16,6 +16,8 @@ CallScope
 .. |python| image:: https://img.shields.io/badge/python-3.12-blue
    :alt: Python
 
+.. rst-class:: badges
+
 |ci| |docs| |release| |license| |python|
 
 📦 **Repository:** `github.com/jakub-michalik/callScope <https://github.com/jakub-michalik/callScope>`_
